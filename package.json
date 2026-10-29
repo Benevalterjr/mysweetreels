@@ -1,0 +1,21 @@
+{
+  "name": "mysweetreels",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "ingest": "node ingest.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@google/genai": "^2.32.0",
+    "btch-downloader": "^6.4.0",
+    "dotenv": "^18.0.9",
+    "instagram-url-direct": "^2.0.7"
+  }
+}

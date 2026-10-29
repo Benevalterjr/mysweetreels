@@ -1,0 +1,41 @@
+{
+  "history": [
+    {
+      "id": "DZN6tU3JWPG",
+      "timestamp": "2026-10-29T21:06:17.450Z",
+      "model": "gemini-2.5-flash",
+      "status": "SUCCESS",
+      "prompt_tokens": 10314,
+      "candidates_tokens": 304,
+      "total_tokens": 11145,
+      "latency_ms": 12001
+    },
+    {
+      "id": "DZN6tU3JWPG",
+      "timestamp": "2026-10-29T21:05:19.977Z",
+      "model": "gemini-2.5-flash",
+      "status": "FAILED",
+      "error": "fetch failed",
+      "latency_ms": 250
+    },
+    {
+      "id": "DcKAh3OJjcJ",
+      "timestamp": "2026-10-29T20:46:34.341Z",
+      "model": "gemini-2.5-flash",
+      "status": "SUCCESS",
+      "prompt_tokens": 20894,
+      "candidates_tokens": 1505,
+      "total_tokens": 24473,
+      "latency_ms": 22016
+    }
+  ],
+  "daily_totals": {
+    "2026-10-29": {
+      "date": "2026-10-29",
+      "requests": 2,
+      "prompt_tokens": 31208,
+      "candidates_tokens": 1809,
+      "total_tokens": 35618
+    }
+  }
+}
