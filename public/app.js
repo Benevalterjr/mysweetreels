@@ -7,6 +7,83 @@ let currentTag = 'ALL';
 let currentSearch = '';
 let currentSort = 'recent';
 
+// =========================================================================
+// OFUSCAÇÃO & PROTEÇÃO CONTRA INSPEÇÃO EM DEVTOOLS (Nível Prático)
+// =========================================================================
+const SALT_KEY = 0x73;
+
+function obscureString(str) {
+  if (!str) return '';
+  const bytes = new TextEncoder().encode(str);
+  const obfuscated = Array.from(bytes, b => b ^ SALT_KEY);
+  return btoa(String.fromCharCode(...obfuscated));
+}
+
+function revealString(token) {
+  if (!token) return '';
+  try {
+    const raw = atob(token);
+    const bytes = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) {
+      bytes[i] = raw.charCodeAt(i) ^ SALT_KEY;
+    }
+    return new TextDecoder().decode(bytes);
+  } catch {
+    return '';
+  }
+}
+
+// Tokens ativos e estado do player Blob (mantidos fora do DOM)
+let activeReelToken = '';
+let activeAuthorToken = '';
+let currentBlobUrl = null;
+let currentFetchController = null;
+
+export function openOriginalSource() {
+  if (!activeReelToken) return;
+  const url = revealString(activeReelToken);
+  if (url) window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+export function openAuthorProfile() {
+  if (!activeAuthorToken) return;
+  const url = revealString(activeAuthorToken);
+  if (url) window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+// Reproduz o vídeo através de um Blob URL privado na memória RAM da aba
+async function playVideoSecurely(videoPath) {
+  const videoPlayer = document.getElementById('modalVideoPlayer');
+  
+  // Limpa qualquer Blob URL antigo para evitar acúmulo de memória
+  if (currentBlobUrl) {
+    URL.revokeObjectURL(currentBlobUrl);
+    currentBlobUrl = null;
+  }
+  if (currentFetchController) {
+    currentFetchController.abort();
+    currentFetchController = null;
+  }
+
+  videoPlayer.pause();
+  videoPlayer.removeAttribute('src');
+
+  try {
+    currentFetchController = new AbortController();
+    const response = await fetch(videoPath, { signal: currentFetchController.signal });
+    if (!response.ok) throw new Error('Falha no stream');
+    const videoBlob = await response.blob();
+    currentBlobUrl = URL.createObjectURL(videoBlob);
+    videoPlayer.src = currentBlobUrl;
+    videoPlayer.play().catch(() => {});
+  } catch (err) {
+    if (err.name === 'AbortError') return;
+    // Fallback gracioso
+    videoPlayer.src = videoPath;
+    videoPlayer.play().catch(() => {});
+  }
+}
+
 // Pagination state
 const PAGE_SIZE = 8;
 let displayedCount = PAGE_SIZE;
@@ -23,13 +100,14 @@ const DEFAULT_SEO = {
 // Load reels data (Prioriza Firestore com fallback transparente para reels.json)
 async function loadReels() {
   try {
+    let rawReels = [];
     let loadedFromFirestore = false;
     try {
       const fbReels = await fetchReelsFromFirestore();
       if (fbReels && fbReels.length > 0) {
-        allReels = fbReels;
+        rawReels = fbReels;
         loadedFromFirestore = true;
-        console.log(`[SweetReels] ⚡ ${allReels.length} posts sincronizados em tempo real via Firebase Firestore!`);
+        console.log(`[SweetReels] ⚡ ${rawReels.length} posts sincronizados em tempo real via Firebase Firestore!`);
       }
     } catch (fbErr) {
       console.warn('[SweetReels] Firestore inacessível ou aguardando publicação de regras. Usando cache local:', fbErr.message);
@@ -38,9 +116,24 @@ async function loadReels() {
     if (!loadedFromFirestore) {
       const res = await fetch('/data/reels.json');
       if (!res.ok) throw new Error('Não foi possível carregar os dados locais');
-      allReels = await res.json();
-      console.log(`[SweetReels] 📁 ${allReels.length} posts carregados do fallback local (reels.json).`);
+      rawReels = await res.json();
+      console.log(`[SweetReels] 📁 ${rawReels.length} posts carregados do fallback local (reels.json).`);
     }
+
+    // Higienização e Proteção: Remove URLs explícitas da memória do feed
+    allReels = rawReels.map(r => {
+      const realUrl = r.url || (r.id ? `https://www.instagram.com/reel/${r.id}/` : '');
+      const realAuthorUrl = r.author?.profile_url || (r.author?.username ? `https://www.instagram.com/${r.author.username}/` : '');
+      const cleanReel = { ...r };
+      cleanReel._tk = obscureString(realUrl);
+      cleanReel._atk = obscureString(realAuthorUrl);
+      delete cleanReel.url;
+      if (cleanReel.author) {
+        cleanReel.author = { ...cleanReel.author };
+        delete cleanReel.author.profile_url;
+      }
+      return cleanReel;
+    });
     
     renderCategoryPills();
     populateCreatorsDropdown();
@@ -433,26 +526,26 @@ function openModal(id) {
   const reel = allReels.find(r => r.id === id);
   if (!reel) return;
 
+  // Carrega tokens protegidos fora do DOM
+  activeReelToken = reel._tk || '';
+  activeAuthorToken = reel._atk || '';
+
   document.getElementById('modalCategory').textContent = `${getCategoryIcon(reel.category)} ${reel.category}`;
   document.getElementById('modalTitle').textContent = reel.title;
   
-  const authorLink = document.getElementById('modalAuthorLink');
-  authorLink.textContent = `@${reel.author?.username || 'instagram'}`;
-  authorLink.href = reel.author?.profile_url || reel.url;
+  const authorBtn = document.getElementById('modalAuthorLink');
+  authorBtn.textContent = `@${reel.author?.username || 'instagram'}`;
 
-  document.getElementById('modalIgDirectBtn').href = reel.url;
-  document.getElementById('modalIgButton').href = reel.url;
   document.getElementById('modalSummary').textContent = reel.summary;
 
-  // Video playback without black bars
+  // Video playback seguro via Blob temporário em memória (não expõe o .mp4 no DOM)
   const videoPlayer = document.getElementById('modalVideoPlayer');
   const embedFallback = document.getElementById('modalEmbedFallback');
 
   if (reel.video_file) {
-    videoPlayer.src = reel.video_file;
     videoPlayer.classList.remove('hidden');
     embedFallback.classList.add('hidden');
-    videoPlayer.play().catch(() => {});
+    playVideoSecurely(reel.video_file);
   } else {
     videoPlayer.pause();
     videoPlayer.classList.add('hidden');
@@ -533,6 +626,18 @@ function closeModal(updateHistory = true) {
   modal.classList.remove('flex');
   document.body.style.overflow = '';
   
+  // Limpeza de recursos do player e revogação de Blob URL
+  if (currentBlobUrl) {
+    URL.revokeObjectURL(currentBlobUrl);
+    currentBlobUrl = null;
+  }
+  if (currentFetchController) {
+    currentFetchController.abort();
+    currentFetchController = null;
+  }
+  activeReelToken = '';
+  activeAuthorToken = '';
+
   const videoPlayer = document.getElementById('modalVideoPlayer');
   videoPlayer.pause();
   videoPlayer.removeAttribute('src');
@@ -780,6 +885,8 @@ window.clearSearch = clearSearch;
 window.toggleTagFilter = toggleTagFilter;
 window.loadMoreItems = loadMoreItems;
 window.toggleCheck = toggleCheck;
+window.openOriginalSource = openOriginalSource;
+window.openAuthorProfile = openAuthorProfile;
 
 // Run
 loadReels();
