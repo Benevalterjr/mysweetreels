@@ -1,0 +1,23 @@
+rules_version = '2';
+
+// Regras de Segurança do Cloud Storage para o MySweetReels
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Pasta de vídeos dos Reels (MP4)
+    match /videos/{videoId} {
+      // Leitura pública para o reprodutor web do MySweetReels
+      allow read: if true;
+
+      // Permite gravação de arquivos de vídeo MP4 legítimos com limite de 60MB
+      allow write: if request.resource.size <= 60 * 1024 * 1024
+                   && request.resource.contentType.matches('video/.*');
+    }
+
+    // Pasta de thumbnails/imagens (se necessário no futuro)
+    match /thumbnails/{imageId} {
+      allow read: if true;
+      allow write: if request.resource.size <= 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+  }
+}

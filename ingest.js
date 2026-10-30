@@ -6,6 +6,7 @@ import { GoogleGenAI, Type } from '@google/genai';
 import { monitor } from './gemini_monitor.js';
 import { db } from './firebase_config.js';
 import { doc, setDoc } from 'firebase/firestore';
+import { uploadVideoToCloudinary } from './cloudinary_uploader.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -169,11 +170,22 @@ Tarefas:
 
   const aiData = JSON.parse(response.text);
 
-  // Remove o vídeo temporário após análise com Gemini para economizar 100% de armazenamento em disco
+  // [Novo] Envia o vídeo para a nuvem do Cloudinary CDN
+  let cloudVideoUrl = null;
+  try {
+    if (fs.existsSync(finalVideoPath)) {
+      console.log(`[Cloudinary] Subindo vídeo otimizado para o Cloudinary...`);
+      cloudVideoUrl = await uploadVideoToCloudinary(finalVideoPath, shortcode);
+    }
+  } catch (cloudErr) {
+    console.warn('⚠️ Falha no upload para o Cloudinary (fallback para embed):', cloudErr.message);
+  }
+
+  // Remove o vídeo temporário local após análise com Gemini e envio para nuvem (Zero armazenamento local)
   try {
     if (fs.existsSync(finalVideoPath)) {
       fs.unlinkSync(finalVideoPath);
-      console.log('🧹 Arquivo de vídeo temporário removido (armazenamento zero no servidor).');
+      console.log('🧹 Arquivo de vídeo temporário removido do computador.');
     }
   } catch (cleanErr) {
     console.warn('Aviso ao remover vídeo temporário:', cleanErr.message);
@@ -202,7 +214,7 @@ Tarefas:
   const newReel = {
     id: shortcode,
     url: normalizedUrl,
-    video_file: null,
+    video_file: cloudVideoUrl,
     author: {
       name: displayName,
       username: handle,

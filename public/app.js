@@ -538,8 +538,12 @@ function openModal(id) {
 
   document.getElementById('modalSummary').textContent = reel.summary;
 
-  // Toca o vídeo diretamente dos servidores da Meta/Instagram (Zero armazenamento local)
-  loadInstagramEmbed(reel.id);
+  // Toca o vídeo: prioriza o CDN do Cloudinary (100% nativo e sem barras pretas) ou fallback para o embed oficial
+  if (reel.video_file && typeof reel.video_file === 'string' && reel.video_file.startsWith('http')) {
+    loadCloudinaryVideoPlayer(reel.video_file);
+  } else {
+    loadInstagramEmbed(reel.id);
+  }
 
   // Interactive Checklist
   document.getElementById('modalChecklistTitle').textContent = `📋 ${reel.checklist_title || 'Componentes / Ingredientes'}`;
@@ -599,6 +603,31 @@ function openModal(id) {
 function toggleCheck(id) {
   const cb = document.getElementById(`check_${id}`);
   if (cb) cb.checked = !cb.checked;
+}
+
+function loadCloudinaryVideoPlayer(videoUrl) {
+  const container = document.getElementById('modalEmbedContainer');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="relative w-full h-[500px] sm:h-[560px] bg-stone-900 rounded-2xl overflow-hidden flex items-center justify-center shadow-inner">
+      <video 
+        id="modalVideoPlayer"
+        src="${videoUrl}" 
+        controls 
+        autoplay 
+        playsinline 
+        loop 
+        preload="metadata"
+        class="w-full h-full object-contain rounded-2xl bg-stone-950"
+      ></video>
+    </div>
+  `;
+
+  const video = document.getElementById('modalVideoPlayer');
+  if (video) {
+    video.play().catch(() => {});
+  }
 }
 
 function loadInstagramEmbed(reelId) {
