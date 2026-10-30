@@ -19,9 +19,12 @@ if (!apiKey) {
 const ai = new GoogleGenAI({ apiKey });
 
 function extractShortcode(rawUrl) {
-  const match = rawUrl.match(/(?:reel|reels|p)\/([A-Za-z0-9_-]+)/);
-  if (!match) throw new Error('URL de Reels inválida: ' + rawUrl);
-  return match[1];
+  if (!rawUrl) throw new Error('URL ou Shortcode não fornecido');
+  const clean = rawUrl.replace(/["'\\]/g, '').trim();
+  const match = clean.match(/(?:reel|reels|p)\/([A-Za-z0-9_-]+)/);
+  if (match) return match[1];
+  if (/^[A-Za-z0-9_-]+$/.test(clean)) return clean;
+  throw new Error('URL de Reels inválida: ' + rawUrl);
 }
 
 export function cleanAndDeduplicate(items) {

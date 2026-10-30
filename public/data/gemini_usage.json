@@ -1,6 +1,16 @@
 {
   "history": [
     {
+      "id": "DeUWTtIxm0Q",
+      "timestamp": "2026-10-30T15:10:45.053Z",
+      "model": "gemini-2.5-flash",
+      "status": "SUCCESS",
+      "prompt_tokens": 13548,
+      "candidates_tokens": 787,
+      "total_tokens": 15748,
+      "latency_ms": 24013
+    },
+    {
       "id": "DdCshJWvQkl",
       "timestamp": "2026-10-30T13:21:19.949Z",
       "model": "gemini-2.5-flash",
@@ -49,10 +59,10 @@
     },
     "2026-10-30": {
       "date": "2026-10-30",
-      "requests": 1,
-      "prompt_tokens": 17076,
-      "candidates_tokens": 848,
-      "total_tokens": 21786
+      "requests": 2,
+      "prompt_tokens": 30624,
+      "candidates_tokens": 1635,
+      "total_tokens": 37534
     }
   }
 }
