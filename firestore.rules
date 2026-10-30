@@ -1,0 +1,186 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: reels
+// Document ID: {reelId} (Instagram reel shortcode identifier, e.g. "DZN6tU3JWPG")
+// Fields:
+//   - id: string (required, 1-100 chars, strictly matches {reelId}, immutable)
+//   - title: string (required, 1-500 chars)
+//   - url: string (required, 1-500 chars, valid http/https URL)
+//   - category: string (required, 1-100 chars)
+//   - summary: string (required, 0-3000 chars)
+//   - checklist_title: string (required, 0-200 chars)
+//   - checklist_items: list of strings (required, max 100 items)
+//   - steps_or_tips: list of strings (required, max 100 items)
+//   - tags: list of strings (required, max 50 items)
+//   - author: map (required, keys: ['name', 'username', 'profile_url'])
+//       * author.name: string (required, 0-150 chars)
+//       * author.username: string (required, 0-100 chars)
+//       * author.profile_url: string (required, 0-500 chars, valid http/https or empty)
+//   - duration: number (required, >= 0 and <= 7200 seconds)
+//   - thumbnail: string (required, 1-1000 chars)
+//   - created_at: string or timestamp (required, immutable)
+//   - updated_at: string or timestamp (optional)
+//   - video_file: string (optional, 1-500 chars)
+//   - transcript: string (optional, 0-25000 chars)
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    // Check if the request is from an authenticated user
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Role-based authorization: checks for admin custom claim or verified bootstrap email
+    function isAdmin() {
+      return isAuthenticated() && (
+        ('admin' in request.auth.token && request.auth.token.admin == true) ||
+        ('email' in request.auth.token &&
+         'email_verified' in request.auth.token &&
+         request.auth.token.email_verified == true &&
+         request.auth.token.email in [
+           'admin@mysweetreels.com',
+           'studio-1211123919-7a14e@appspot.gserviceaccount.com'
+         ])
+      );
+    }
+
+    // Validate that required fields exist on the payload
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // Validate that document contains only allowed fields
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // Validate URL format (http or https)
+    function isValidUrl(url) {
+      return url is string &&
+        (url.matches('^https://.*') || url.matches('^http://.*'));
+    }
+
+    // Verify immutable fields are not modified during an update
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidAuthor(author) {
+      return author is map &&
+        author.keys().hasAll(['name', 'username', 'profile_url']) &&
+        author.keys().hasOnly(['name', 'username', 'profile_url']) &&
+        author.name is string && author.name.size() <= 150 &&
+        author.username is string && author.username.size() <= 100 &&
+        author.profile_url is string && author.profile_url.size() <= 500 &&
+        (author.profile_url.size() == 0 || isValidUrl(author.profile_url));
+    }
+
+    function isValidReel(data, reelId) {
+      let requiredFields = [
+        'id', 'title', 'url', 'category', 'summary',
+        'checklist_title', 'checklist_items', 'steps_or_tips', 'tags',
+        'author', 'duration', 'thumbnail', 'created_at'
+      ];
+
+      let allowedFields = [
+        'id', 'title', 'url', 'category', 'summary',
+        'checklist_title', 'checklist_items', 'steps_or_tips', 'tags',
+        'author', 'duration', 'thumbnail', 'created_at',
+        'updated_at', 'video_file', 'transcript'
+      ];
+
+      return hasRequiredFields(requiredFields) &&
+        hasOnlyAllowedFields(allowedFields) &&
+        // id validation
+        data.id is string &&
+        data.id.size() >= 1 &&
+        data.id.size() <= 100 &&
+        data.id == reelId &&
+        // title & category validation
+        data.title is string &&
+        data.title.size() >= 1 &&
+        data.title.size() <= 500 &&
+        data.category is string &&
+        data.category.size() >= 1 &&
+        data.category.size() <= 100 &&
+        // url validation
+        data.url is string &&
+        data.url.size() >= 1 &&
+        data.url.size() <= 500 &&
+        isValidUrl(data.url) &&
+        // text fields validation (DoS limits)
+        data.summary is string &&
+        data.summary.size() <= 3000 &&
+        data.checklist_title is string &&
+        data.checklist_title.size() <= 200 &&
+        // list fields validation
+        data.checklist_items is list &&
+        data.checklist_items.size() <= 100 &&
+        data.steps_or_tips is list &&
+        data.steps_or_tips.size() <= 100 &&
+        data.tags is list &&
+        data.tags.size() <= 50 &&
+        // author validation
+        isValidAuthor(data.author) &&
+        // duration validation (0 to 2 hours)
+        data.duration is number &&
+        data.duration >= 0 &&
+        data.duration <= 7200 &&
+        // thumbnail validation
+        data.thumbnail is string &&
+        data.thumbnail.size() >= 1 &&
+        data.thumbnail.size() <= 1000 &&
+        // created_at validation (timestamp or ISO string)
+        (data.created_at is timestamp ||
+         (data.created_at is string && data.created_at.size() >= 1 && data.created_at.size() <= 100)) &&
+        // optional fields validation
+        (!('updated_at' in data) ||
+         data.updated_at is timestamp ||
+         (data.updated_at is string && data.updated_at.size() >= 1 && data.updated_at.size() <= 100)) &&
+        (!('video_file' in data) ||
+         (data.video_file is string && data.video_file.size() <= 500)) &&
+        (!('transcript' in data) ||
+         (data.transcript is string && data.transcript.size() <= 25000));
+    }
+
+    // ===============================================================
+    // Rules Definition
+    // ===============================================================
+
+    // Global default: deny all unmatched read/write operations
+    match /{document=**} {
+      allow read, write: false;
+    }
+
+    // Curated Instagram Reels Collection
+    match /reels/{reelId} {
+      // 1. Public read for everyone (web visitors, search engines, AI crawlers)
+      allow read: if true;
+
+      // 2. Creates with comprehensive domain schema validation (guarded against spam and bad schema)
+      allow create: if isValidReel(request.resource.data, reelId);
+
+      // 3. Updates with domain validation and immutability protection
+      allow update: if isValidReel(request.resource.data, reelId) &&
+                       areImmutableFieldsUnchanged(['id', 'created_at']);
+
+      // 4. Admin-only deletes (prevents client spam or accidental wipe)
+      allow delete: if isAdmin();
+    }
+  }
+}

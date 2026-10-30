@@ -4,6 +4,8 @@ import fs from 'fs';
 import path from 'path';
 import { GoogleGenAI, Type } from '@google/genai';
 import { monitor } from './gemini_monitor.js';
+import { db } from './firebase_config.js';
+import { doc, setDoc } from 'firebase/firestore';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -211,6 +213,19 @@ Tarefas:
 
   reels.unshift(newReel);
   fs.writeFileSync(reelsDataPath, JSON.stringify(reels, null, 2));
+
+  // Sincroniza metadados com o Cloud Firestore (sem uploads de vídeo)
+  try {
+    console.log('[Firestore] Sincronizando metadados com o Cloud Firestore...');
+    const docRef = doc(db, 'reels', shortcode);
+    await setDoc(docRef, {
+      ...newReel,
+      updated_at: new Date().toISOString()
+    }, { merge: true });
+    console.log('⚡ Sincronizado no Cloud Firestore com sucesso!');
+  } catch (fsErr) {
+    console.warn('⚠️ Nota: Não foi possível sincronizar imediatamente com Firestore:', fsErr.message);
+  }
 
   console.log('✅ REELS PUBLICADO COM SUCESSO NO MYSWEETREELS!');
   return newReel;

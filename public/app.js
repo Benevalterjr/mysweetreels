@@ -1,3 +1,5 @@
+import { fetchReelsFromFirestore } from './firebase-config.js';
+
 let allReels = [];
 let currentCategory = 'ALL';
 let currentCreator = 'ALL';
@@ -18,12 +20,27 @@ const DEFAULT_SEO = {
   url: 'https://mysweetreels.netlify.app/'
 };
 
-// Load reels data
+// Load reels data (Prioriza Firestore com fallback transparente para reels.json)
 async function loadReels() {
   try {
-    const res = await fetch('/data/reels.json');
-    if (!res.ok) throw new Error('Não foi possível carregar os dados');
-    allReels = await res.json();
+    let loadedFromFirestore = false;
+    try {
+      const fbReels = await fetchReelsFromFirestore();
+      if (fbReels && fbReels.length > 0) {
+        allReels = fbReels;
+        loadedFromFirestore = true;
+        console.log(`[SweetReels] ⚡ ${allReels.length} posts sincronizados em tempo real via Firebase Firestore!`);
+      }
+    } catch (fbErr) {
+      console.warn('[SweetReels] Firestore inacessível ou aguardando publicação de regras. Usando cache local:', fbErr.message);
+    }
+
+    if (!loadedFromFirestore) {
+      const res = await fetch('/data/reels.json');
+      if (!res.ok) throw new Error('Não foi possível carregar os dados locais');
+      allReels = await res.json();
+      console.log(`[SweetReels] 📁 ${allReels.length} posts carregados do fallback local (reels.json).`);
+    }
     
     renderCategoryPills();
     populateCreatorsDropdown();
@@ -751,6 +768,18 @@ window.addEventListener('click', e => {
 window.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeModal();
 });
+
+// Expor funções globais para eventos inline do DOM (módulos ES isolam escopo)
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.setCategory = setCategory;
+window.onCreatorChange = onCreatorChange;
+window.onSortChange = onSortChange;
+window.resetAllFilters = resetAllFilters;
+window.clearSearch = clearSearch;
+window.toggleTagFilter = toggleTagFilter;
+window.loadMoreItems = loadMoreItems;
+window.toggleCheck = toggleCheck;
 
 // Run
 loadReels();
