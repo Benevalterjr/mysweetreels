@@ -30,7 +30,7 @@ async function migrate() {
       const payload = {
         id: reel.id,
         url: reel.url,
-        video_file: reel.video_file || `/videos/${reel.id}.mp4`,
+        video_file: reel.video_file || null,
         author: {
           name: reel.author?.name || '',
           username: reel.author?.username || '',

@@ -169,6 +169,16 @@ Tarefas:
 
   const aiData = JSON.parse(response.text);
 
+  // Remove o vídeo temporário após análise com Gemini para economizar 100% de armazenamento em disco
+  try {
+    if (fs.existsSync(finalVideoPath)) {
+      fs.unlinkSync(finalVideoPath);
+      console.log('🧹 Arquivo de vídeo temporário removido (armazenamento zero no servidor).');
+    }
+  } catch (cleanErr) {
+    console.warn('Aviso ao remover vídeo temporário:', cleanErr.message);
+  }
+
   console.log('[3/3] Atualizando public/data/reels.json com a nova publicação...');
   const reelsDataPath = path.join('public', 'data', 'reels.json');
   if (!fs.existsSync(path.join('public', 'data'))) {
@@ -192,7 +202,7 @@ Tarefas:
   const newReel = {
     id: shortcode,
     url: normalizedUrl,
-    video_file: `/videos/${shortcode}.mp4`,
+    video_file: null,
     author: {
       name: displayName,
       username: handle,

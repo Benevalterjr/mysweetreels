@@ -1,3 +1,6 @@
 node_modules/
 dist/
 .netlify/
+public/videos/*.mp4
+*.mp4
+firebase-debug.log

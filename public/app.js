@@ -538,27 +538,8 @@ function openModal(id) {
 
   document.getElementById('modalSummary').textContent = reel.summary;
 
-  // Video playback seguro via Blob temporário em memória (não expõe o .mp4 no DOM)
-  const videoPlayer = document.getElementById('modalVideoPlayer');
-  const embedFallback = document.getElementById('modalEmbedFallback');
-
-  if (reel.video_file) {
-    videoPlayer.classList.remove('hidden');
-    embedFallback.classList.add('hidden');
-    playVideoSecurely(reel.video_file);
-  } else {
-    videoPlayer.pause();
-    videoPlayer.classList.add('hidden');
-    embedFallback.classList.remove('hidden');
-    embedFallback.innerHTML = `
-      <iframe 
-        src="https://www.instagram.com/reel/${reel.id}/embed" 
-        class="w-full h-full border-0 block"
-        scrolling="no"
-        frameborder="0"
-      ></iframe>
-    `;
-  }
+  // Toca o vídeo diretamente dos servidores da Meta/Instagram (Zero armazenamento local)
+  loadInstagramEmbed(reel.id);
 
   // Interactive Checklist
   document.getElementById('modalChecklistTitle').textContent = `📋 ${reel.checklist_title || 'Componentes / Ingredientes'}`;
@@ -620,29 +601,45 @@ function toggleCheck(id) {
   if (cb) cb.checked = !cb.checked;
 }
 
+function loadInstagramEmbed(reelId) {
+  const container = document.getElementById('modalEmbedContainer');
+  if (!container) return;
+
+  // Iframe limpo e responsivo oficial do Instagram (streaming direto dos servidores da Meta)
+  container.innerHTML = `
+    <iframe 
+      src="https://www.instagram.com/reel/${reelId}/embed/" 
+      class="w-full h-[500px] sm:h-[560px] border-0 rounded-2xl bg-white shadow-none block"
+      scrolling="no"
+      frameborder="0"
+      allowtransparency="true"
+      allow="encrypted-media"
+    ></iframe>
+  `;
+
+  // Garante que o script oficial do Instagram processe caso necessário
+  if (!document.querySelector('script[src="https://www.instagram.com/embed.js"]')) {
+    const s = document.createElement('script');
+    s.src = 'https://www.instagram.com/embed.js';
+    s.async = true;
+    document.body.appendChild(s);
+  } else if (window.instgrm && window.instgrm.Embeds) {
+    try { window.instgrm.Embeds.process(); } catch (e) {}
+  }
+}
+
 function closeModal(updateHistory = true) {
   const modal = document.getElementById('detailModal');
   modal.classList.add('hidden');
   modal.classList.remove('flex');
   document.body.style.overflow = '';
   
-  // Limpeza de recursos do player e revogação de Blob URL
-  if (currentBlobUrl) {
-    URL.revokeObjectURL(currentBlobUrl);
-    currentBlobUrl = null;
-  }
-  if (currentFetchController) {
-    currentFetchController.abort();
-    currentFetchController = null;
-  }
+  // Limpa o container do embed para parar o áudio/vídeo imediatamente
+  const embedContainer = document.getElementById('modalEmbedContainer');
+  if (embedContainer) embedContainer.innerHTML = '';
+
   activeReelToken = '';
   activeAuthorToken = '';
-
-  const videoPlayer = document.getElementById('modalVideoPlayer');
-  videoPlayer.pause();
-  videoPlayer.removeAttribute('src');
-  videoPlayer.load();
-  document.getElementById('modalEmbedFallback').innerHTML = '';
 
   resetSeo(updateHistory);
 }

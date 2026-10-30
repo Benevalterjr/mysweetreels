@@ -153,6 +153,7 @@ service cloud.firestore {
          data.updated_at is timestamp ||
          (data.updated_at is string && data.updated_at.size() >= 1 && data.updated_at.size() <= 100)) &&
         (!('video_file' in data) ||
+         data.video_file == null ||
          (data.video_file is string && data.video_file.size() <= 500)) &&
         (!('transcript' in data) ||
          (data.transcript is string && data.transcript.size() <= 25000));
