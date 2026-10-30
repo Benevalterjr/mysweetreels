@@ -1,7 +1,7 @@
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
-import { monitor } from './gemini_monitor.js';
+import { monitor } from './lib/gemini_monitor.js';
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.resolve('public');

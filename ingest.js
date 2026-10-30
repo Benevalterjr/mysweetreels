@@ -3,10 +3,10 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { GoogleGenAI, Type } from '@google/genai';
-import { monitor } from './gemini_monitor.js';
-import { db } from './firebase_config.js';
+import { monitor } from './lib/gemini_monitor.js';
+import { db } from './lib/firebase.js';
 import { doc, setDoc } from 'firebase/firestore';
-import { uploadVideoToCloudinary } from './cloudinary_uploader.js';
+import { uploadVideoToCloudinary } from './lib/cloudinary.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -77,7 +77,7 @@ async function ingestReel(rawUrl) {
   console.log('\n[1/3] Baixando mídia, capa e metadados com cookies do navegador...');
   let basicMeta = {};
   try {
-    const pyOutput = execSync(`py download_reel.py "${normalizedUrl}" "${finalVideoPath}" "${finalThumbPath}"`, {
+    const pyOutput = execSync(`py lib/downloader.py "${normalizedUrl}" "${finalVideoPath}" "${finalThumbPath}"`, {
       encoding: 'utf-8',
       env: { ...process.env, NODE_TLS_REJECT_UNAUTHORIZED: '0' }
     });

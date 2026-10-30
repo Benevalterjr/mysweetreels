@@ -1,7 +1,7 @@
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 import fs from 'fs';
 import path from 'path';
-import { db } from './firebase_config.js';
+import { db } from '../lib/firebase.js';
 import { doc, setDoc, getDocs, collection } from 'firebase/firestore';
 
 async function migrate() {

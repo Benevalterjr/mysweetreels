@@ -2,8 +2,8 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { uploadVideoToCloudinary } from './cloudinary_uploader.js';
-import { db } from './firebase_config.js';
+import { uploadVideoToCloudinary } from '../lib/cloudinary.js';
+import { db } from '../lib/firebase.js';
 import { doc, updateDoc } from 'firebase/firestore';
 
 async function syncAll() {
@@ -26,8 +26,8 @@ async function syncAll() {
     const normalizedUrl = `https://www.instagram.com/reel/${shortcode}/`;
 
     try {
-      console.log('1. Baixando vídeo com download_reel.py...');
-      execSync(`py download_reel.py "${normalizedUrl}" "${tempVideo}" "${tempThumb}"`, {
+      console.log('1. Baixando vídeo com lib/downloader.py...');
+      execSync(`py lib/downloader.py "${normalizedUrl}" "${tempVideo}" "${tempThumb}"`, {
         encoding: 'utf-8',
         env: { ...process.env, NODE_TLS_REJECT_UNAUTHORIZED: '0' }
       });

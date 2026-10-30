@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "ingest": "node ingest.js",
-    "migrate:firebase": "node migrate_to_firebase.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "migrate:firebase": "node scripts/migrate_to_firebase.js",
+    "sync:cloudinary": "node scripts/sync_all_cloudinary.js"
   },
   "keywords": [],
   "author": "",
@@ -15,10 +15,8 @@
   "description": "",
   "dependencies": {
     "@google/genai": "^2.32.0",
-    "btch-downloader": "^6.4.0",
     "cloudinary": "^2.11.0",
     "dotenv": "^18.0.9",
-    "firebase": "^13.1.0",
-    "instagram-url-direct": "^2.0.7"
+    "firebase": "^13.1.0"
   }
 }
