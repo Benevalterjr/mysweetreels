@@ -164,7 +164,7 @@ service cloud.firestore {
 
     // Global default: deny all unmatched read/write operations
     match /{document=**} {
-      allow read, write: false;
+      allow read, write: if false;
     }
 
     // Curated Instagram Reels Collection
