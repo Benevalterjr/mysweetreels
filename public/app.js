@@ -1676,6 +1676,60 @@ window.openAuthorProfile = openAuthorProfile;
 window.searchIngredientPrices = searchIngredientPrices;
 window.setQuickCep = setQuickCep;
 
+// Hero / Tela de Entrada Actions
+export async function pasteHeroInput() {
+  try {
+    if (!navigator.clipboard || !navigator.clipboard.readText) {
+      showToast('Seu navegador não permite colar automaticamente');
+      return;
+    }
+    const text = await navigator.clipboard.readText();
+    const clean = (text || '').trim();
+    const heroInput = document.getElementById('heroUrlInput');
+    if (heroInput && clean) {
+      heroInput.value = clean;
+      showToast('📋 Link colado!');
+      if (clean.includes('instagram.com/')) {
+        handleHeroExtract();
+      }
+    } else {
+      showToast('Área de transferência vazia');
+    }
+  } catch (err) {
+    showToast('Toque e segure no campo para colar');
+  }
+}
+
+export function handleHeroExtract() {
+  const heroInput = document.getElementById('heroUrlInput');
+  const url = (heroInput ? heroInput.value : '').trim();
+  if (!url) {
+    openExtractModal();
+    return;
+  }
+  if (!url.includes('instagram.com/')) {
+    showToast('Por favor, insira um link válido do Instagram Reels');
+    return;
+  }
+  openExtractModal(url);
+  startReelExtraction(url);
+}
+
+export function applyHeroQuickSearch(term) {
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.value = term;
+    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  const clearBtn = document.getElementById('clearSearchBtn');
+  if (clearBtn) clearBtn.classList.remove('hidden');
+
+  const filterBar = document.querySelector('section.max-w-7xl');
+  if (filterBar) {
+    filterBar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
 // PWA & Extração de novos Reels
 window.openExtractModal = openExtractModal;
 window.closeExtractModal = closeExtractModal;
@@ -1684,6 +1738,9 @@ window.pasteFromClipboard = pasteFromClipboard;
 window.startReelExtraction = startReelExtraction;
 window.dismissClipboardBanner = dismissClipboardBanner;
 window.extractFromClipboardBanner = extractFromClipboardBanner;
+window.pasteHeroInput = pasteHeroInput;
+window.handleHeroExtract = handleHeroExtract;
+window.applyHeroQuickSearch = applyHeroQuickSearch;
 
 // Run
 loadReels();

@@ -1,9 +1,12 @@
-const CACHE_NAME = 'sweetreels-v1';
+const CACHE_NAME = 'sweetreels-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/app.js',
   '/manifest.json',
+  '/logo.svg',
+  '/logo-icon.svg',
+  '/favicon.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/data/reels.json'
