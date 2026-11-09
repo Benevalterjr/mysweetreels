@@ -10,13 +10,15 @@ import { uploadVideoToCloudinary } from './lib/cloudinary.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey) {
-  console.error('ERRO: GEMINI_API_KEY não encontrada no .env');
+const apiKeys = [
+  process.env.GEMINI_API_KEY,
+  process.env.GEMINI_API_KEY_BACKUP
+].filter(Boolean);
+
+if (apiKeys.length === 0) {
+  console.error('ERRO: Nenhuma chave GEMINI_API_KEY ou GEMINI_API_KEY_BACKUP encontrada no .env');
   process.exit(1);
 }
-
-const ai = new GoogleGenAI({ apiKey });
 
 function extractShortcode(rawUrl) {
   if (!rawUrl) throw new Error('URL ou Shortcode não fornecido');
@@ -155,31 +157,56 @@ Tarefas:
   };
 
   try {
-    const candidateModels = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.6-flash'];
+    const candidateModels = ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite'];
     let lastErr = null;
 
-    for (const modelName of candidateModels) {
-      for (let attempt = 1; attempt <= 2; attempt++) {
-        try {
-          console.log(`[Gemini Flash] Enviando para ${modelName} (tentativa ${attempt})...`);
-          response = await ai.models.generateContent({
-            model: modelName,
-            ...generatePayload
-          });
-          if (response && response.text) break;
-        } catch (callErr) {
-          lastErr = callErr;
-          console.warn(`[Gemini Flash] Tentativa ${attempt} no modelo ${modelName} falhou: ${callErr.message}`);
-          if (attempt < 2) {
-            await new Promise(r => setTimeout(r, 2000));
+    for (let keyIdx = 0; keyIdx < apiKeys.length; keyIdx++) {
+      const currentKey = apiKeys[keyIdx];
+      const keyLabel = keyIdx === 0 ? 'Primária' : `Backup ${keyIdx}`;
+      const genAI = new GoogleGenAI({ apiKey: currentKey });
+      let shouldSwitchKey = false;
+
+      for (const modelName of candidateModels) {
+        if (shouldSwitchKey) break;
+
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          try {
+            console.log(`[Gemini IA] Usando Chave ${keyLabel} ➔ Modelo ${modelName} (tentativa ${attempt})...`);
+            response = await genAI.models.generateContent({
+              model: modelName,
+              ...generatePayload
+            });
+            if (response && response.text) break;
+          } catch (callErr) {
+            lastErr = callErr;
+            const msg = callErr.message || '';
+
+            // 404: modelo não existe para esta chave (ex: 2.5 em chaves novas) -> pula imediatamente
+            if (msg.includes('404') || msg.includes('no longer available') || msg.includes('NOT_FOUND')) {
+              console.log(`[Gemini IA] Modelo ${modelName} indisponível para esta chave. Alternando modelo...`);
+              break;
+            }
+
+            // 429 ou 403: cota esgotada ou erro de permissão -> alterna para a chave reserva
+            if (msg.includes('429') || msg.includes('403') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('PERMISSION_DENIED')) {
+              console.warn(`[Gemini IA] Chave ${keyLabel} atingiu limite/permissão (${msg}). Alternando para chave reserva...`);
+              shouldSwitchKey = true;
+              break;
+            }
+
+            console.warn(`[Gemini IA] Tentativa ${attempt} no modelo ${modelName} falhou: ${msg}`);
+            if (attempt < 2) {
+              await new Promise(r => setTimeout(r, 1500));
+            }
           }
         }
+        if (response && response.text) break;
       }
       if (response && response.text) break;
     }
 
     if (!response || !response.text) {
-      throw lastErr || new Error('Não foi possível obter resposta dos modelos Gemini.');
+      throw lastErr || new Error('Não foi possível obter resposta de nenhuma das chaves Gemini.');
     }
 
     const latencyMs = Date.now() - startTime;
