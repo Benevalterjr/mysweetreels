@@ -12,6 +12,11 @@
 ## ✨ Funcionalidades Principais
 
 * 📱 **Reprodutor Nativo Vertical 9:16:** Streaming direto via Cloudinary CDN em tela cheia, com controles nativos de áudio/vídeo, sem cortes e **sem nenhuma barra preta** lateral.
+* 🛒 **Radar de Preços InfoPrice nos Mercados Próximos:**
+  * Busca os principais ingredientes da receita nas gôndolas reais de supermercados próximos ao usuário (por CEP e raio de 3km a 15km).
+  * Exibe o custo total estimado da cesta de compras (menor preço somado, média e comparativo).
+  * Ranking de lojas por disponibilidade e economia (Pão de Açúcar, Carrefour, Assaí, Sonda, St. Marche, etc.), com link direto para rota no Google Maps.
+  * Fotos oficiais dos produtos, marcas disponíveis e menor preço encontrado.
 * 🚫 **Zero Redirecionamentos:** O vídeo toca diretamente na página, contornando limitações de direitos autorais de músicas comerciais da Meta (*"Assistir no Instagram"*).
 * 🤖 **Ingestão Inteligente por IA (Gemini 2.5 Flash):**
   * Transcrição integral e fidedigna do áudio falado.
@@ -36,7 +41,12 @@ mysweetreels/
 │   ├── cloudinary.js               # Upload e otimização de vídeo na CDN
 │   ├── downloader.py               # Extração de vídeo e capa em alta resolução
 │   ├── firebase.js                 # Inicialização singleton do Firebase SDK
-│   └── gemini_monitor.js           # Monitoramento de cotas, latência e rate limits
+│   ├── gemini_monitor.js           # Monitoramento de cotas, latência e rate limits
+│   └── infoprice.js                # Cliente InfoPrice, BrasilAPI e cálculo de cestas
+│
+├── netlify/                        # Funções Serverless Netlify
+│   └── functions/
+│       └── ingredients-pricing.js  # Endpoint serverless para cotação de ingredientes
 │
 ├── public/                         # Frontend estático servido pelo Netlify
 │   ├── app.js                      # Interface, filtros, paginação e modal

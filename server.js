@@ -2,6 +2,7 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { monitor } from './lib/gemini_monitor.js';
+import { getRecipeIngredientsPricing } from './lib/infoprice.js';
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.resolve('public');
@@ -29,6 +30,60 @@ const server = http.createServer((req, res) => {
       'Access-Control-Allow-Origin': '*'
     });
     res.end(JSON.stringify(monitor.getDashboardStats(), null, 2));
+    return;
+  }
+
+  // API endpoint de busca de preços de ingredientes locais via InfoPrice
+  if (urlPath === '/api/ingredients-pricing') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204);
+      res.end();
+      return;
+    }
+
+    if (req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => {
+        body += chunk;
+        if (body.length > 1e6) req.destroy();
+      });
+      req.on('end', async () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          const result = await getRecipeIngredientsPricing({
+            items: payload.items || [],
+            cep: payload.cep || '04025010',
+            raio: payload.raio || 5
+          });
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify(result));
+        } catch (err) {
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ success: false, error: err.message }));
+        }
+      });
+      return;
+    }
+
+    const urlObj = new URL(req.url, `http://${req.headers.host}`);
+    const cep = urlObj.searchParams.get('cep') || '04025010';
+    const raio = Number(urlObj.searchParams.get('raio')) || 5;
+    const itemsParam = urlObj.searchParams.get('items');
+    const items = itemsParam ? itemsParam.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+    getRecipeIngredientsPricing({ items, cep, raio })
+      .then(result => {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify(result));
+      })
+      .catch(err => {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: false, error: err.message }));
+      });
     return;
   }
 

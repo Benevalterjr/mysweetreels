@@ -747,6 +747,9 @@ function openModal(id) {
   document.body.style.overflow = 'hidden';
   modal.querySelector('.custom-scroll')?.scrollTo(0, 0);
 
+  // Inicializa o radar de preços de ingredientes InfoPrice
+  initIngredientsMarket(reel);
+
   acquireWakeLock();
 
   // Dynamic SEO & JSON-LD
@@ -1030,6 +1033,343 @@ function resetSeo(updateHistory = true) {
   }
 }
 
+// =========================================================================
+// INFOPRICE: RADAR DE PREÇOS E SUPERMERCADOS PRÓXIMOS
+// =========================================================================
+const USER_CEP_KEY = 'sweetreels:user_cep';
+const USER_RADIUS_KEY = 'sweetreels:user_radius';
+
+function formatCurrency(val) {
+  const num = Number(val) || 0;
+  return `R$ ${num.toFixed(2).replace('.', ',')}`;
+}
+
+function formatCep(val) {
+  const clean = String(val || '').replace(/\D/g, '').slice(0, 8);
+  if (clean.length > 5) {
+    return `${clean.slice(0, 5)}-${clean.slice(5)}`;
+  }
+  return clean;
+}
+
+function getStoredCep() {
+  return store.get(USER_CEP_KEY, '04025010');
+}
+
+function setStoredCep(cep) {
+  const clean = String(cep || '').replace(/\D/g, '');
+  if (clean.length === 8) store.set(USER_CEP_KEY, clean);
+}
+
+function initIngredientsMarket(reel) {
+  const section = document.getElementById('modalIngredientsMarketSection');
+  const input = document.getElementById('ingredientCepInput');
+  const select = document.getElementById('ingredientRadiusSelect');
+  const resultsContainer = document.getElementById('ingredientPricesResults');
+
+  if (!section || !input || !resultsContainer) return;
+
+  const cleanItems = cleanAndDeduplicate(reel.checklist_items);
+  if (!cleanItems || cleanItems.length === 0) {
+    section.classList.add('hidden');
+    return;
+  }
+  section.classList.remove('hidden');
+
+  const savedCep = getStoredCep();
+  input.value = formatCep(savedCep);
+
+  const savedRadius = store.get(USER_RADIUS_KEY, '5');
+  if (select) select.value = savedRadius;
+
+  // Configura máscara e Enter no input se ainda não configurado
+  if (!input.dataset.bound) {
+    input.dataset.bound = 'true';
+    input.addEventListener('input', (e) => {
+      e.target.value = formatCep(e.target.value);
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') searchIngredientPrices();
+    });
+  }
+
+  // Convite amigável
+  resultsContainer.innerHTML = `
+    <div class="text-[11px] text-stone-600 bg-white/80 border border-stone-200/70 rounded-xl p-3 flex items-center justify-between gap-2 shadow-2xs">
+      <div>
+        <span>📍 CEP configurado: <strong>${formatCep(savedCep)}</strong>. Toque em <strong>Buscar Preços</strong> para cotar a receita nos mercados mais próximos.</span>
+      </div>
+      <button onclick="searchIngredientPrices()" class="px-2.5 py-1 rounded-lg bg-stone-900 hover:bg-stone-800 text-white font-extrabold text-[10px] transition-colors flex-shrink-0 cursor-pointer">
+        Cotar agora
+      </button>
+    </div>
+  `;
+}
+
+export function setQuickCep(cep) {
+  const input = document.getElementById('ingredientCepInput');
+  if (input) {
+    input.value = formatCep(cep);
+    setStoredCep(cep);
+    searchIngredientPrices();
+  }
+}
+
+let isSearchingPrices = false;
+
+export async function searchIngredientPrices() {
+  if (isSearchingPrices) return;
+
+  const reel = allReels.find(r => r.id === activeReelId);
+  if (!reel) return;
+
+  const cleanItems = cleanAndDeduplicate(reel.checklist_items);
+  if (!cleanItems || cleanItems.length === 0) {
+    showToast('Esta receita não possui ingredientes cadastrados');
+    return;
+  }
+
+  const input = document.getElementById('ingredientCepInput');
+  const select = document.getElementById('ingredientRadiusSelect');
+  const resultsContainer = document.getElementById('ingredientPricesResults');
+  const btn = document.getElementById('btnFetchIngredientPrices');
+  const btnIcon = document.getElementById('btnFetchPricesIcon');
+
+  const rawCep = input ? input.value : '';
+  const cleanCep = String(rawCep).replace(/\D/g, '');
+
+  if (cleanCep.length !== 8) {
+    showToast('Informe um CEP válido com 8 dígitos');
+    if (input) input.focus();
+    return;
+  }
+
+  const raio = select ? Number(select.value) || 5 : 5;
+  setStoredCep(cleanCep);
+  store.set(USER_RADIUS_KEY, String(raio));
+
+  isSearchingPrices = true;
+  if (btn) btn.classList.add('opacity-75', 'pointer-events-none');
+  if (btnIcon) btnIcon.innerHTML = '<span class="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>';
+
+  resultsContainer.innerHTML = `
+    <div class="p-4 bg-white/90 rounded-2xl border border-rose-100 text-center space-y-2 shadow-2xs">
+      <div class="inline-block w-6 h-6 border-2 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-xs font-bold text-stone-800">Cotando ingredientes na InfoPrice...</p>
+      <p class="text-[10px] text-stone-500">Mapeando preços e estoques nos mercados num raio de ${raio}km do CEP ${formatCep(cleanCep)}</p>
+    </div>
+  `;
+
+  try {
+    const response = await fetch('/api/ingredients-pricing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cep: cleanCep,
+        raio,
+        items: cleanItems
+      })
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || `Erro HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    renderIngredientPricesResults(data, cleanItems);
+  } catch (err) {
+    console.error('[InfoPrice Search Error]:', err);
+    resultsContainer.innerHTML = `
+      <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-center text-xs text-rose-800 space-y-1">
+        <p class="font-bold">Não foi possível consultar os preços no momento</p>
+        <p class="text-[11px] text-rose-600">${escapeHtml(err.message)}</p>
+        <button onclick="searchIngredientPrices()" class="mt-1 px-3 py-1 bg-white border border-rose-300 rounded-lg text-rose-700 font-bold text-xs hover:bg-rose-100 transition-colors">
+          Tentar novamente
+        </button>
+      </div>
+    `;
+  } finally {
+    isSearchingPrices = false;
+    if (btn) btn.classList.remove('opacity-75', 'pointer-events-none');
+    if (btnIcon) btnIcon.textContent = '🔍';
+  }
+}
+
+function renderIngredientPricesResults(data, originalItems) {
+  const container = document.getElementById('ingredientPricesResults');
+  if (!container) return;
+
+  const stores = data.stores || [];
+  const details = data.ingredientDetails || [];
+  const summary = data.basketSummary;
+
+  if (stores.length === 0 && (!summary || summary.itemsFound === 0)) {
+    container.innerHTML = `
+      <div class="p-3.5 bg-amber-50/80 border border-amber-200/80 rounded-2xl text-center space-y-1.5">
+        <span class="text-lg">🏪</span>
+        <h5 class="text-xs font-bold text-amber-900">Nenhuma oferta recente encontrada no raio de ${data.raio}km</h5>
+        <p class="text-[11px] text-stone-600 leading-relaxed">
+          Os mercados próximos ao CEP <strong>${formatCep(data.cep)}</strong> ainda não reportaram dados de gôndola recentes para esses ingredientes específicos.
+        </p>
+        <p class="text-[11px] text-stone-500">
+          💡 Tente aumentar o raio para <strong>10km</strong> ou <strong>15km</strong> ou teste com os CEPs de exemplo acima.
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  // 1. Resumo da Cesta (Total Estimado e Economia)
+  let summaryHtml = '';
+  if (summary) {
+    const economia = summary.maxTotal > summary.minTotal ? (summary.maxTotal - summary.minTotal) : 0;
+    summaryHtml = `
+      <div class="bg-gradient-to-r from-amber-500 to-rose-500 rounded-2xl p-3.5 text-white shadow-sm space-y-2">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-black uppercase tracking-wider text-[10px] text-amber-100 flex items-center gap-1">
+            <span>✨</span> Estimativa da Cesta Completa
+          </span>
+          <span class="bg-white/20 backdrop-blur-xs px-2 py-0.5 rounded-full text-[10px] font-extrabold">
+            ${summary.itemsFound} de ${summary.itemsTotal} ingredientes
+          </span>
+        </div>
+
+        <div class="flex items-baseline justify-between gap-2 flex-wrap">
+          <div>
+            <span class="text-[11px] text-amber-100 block">Melhor preço somado:</span>
+            <span class="text-xl sm:text-2xl font-black tracking-tight">${formatCurrency(summary.minTotal)}</span>
+          </div>
+          <div class="text-right">
+            <span class="text-[11px] text-amber-100 block">Preço médio:</span>
+            <span class="text-sm font-bold opacity-90">${formatCurrency(summary.avgTotal)}</span>
+          </div>
+        </div>
+
+        ${economia > 0 ? `
+          <div class="pt-1.5 border-t border-white/20 text-[11px] text-amber-100 flex items-center gap-1">
+            <span>💡</span>
+            <span>Você pode economizar até <strong>${formatCurrency(economia)}</strong> escolhendo o mercado certo!</span>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  // 2. Lojas Mais Próximas & Baratas
+  let storesHtml = '';
+  if (stores.length > 0) {
+    storesHtml = `
+      <div class="space-y-2">
+        <div class="flex items-center justify-between text-xs">
+          <h5 class="font-extrabold text-stone-900 flex items-center gap-1.5">
+            <span>🏪</span> Supermercados Próximos
+          </h5>
+          <span class="text-[10px] text-stone-400 font-semibold">${stores.length} lojas encontradas</span>
+        </div>
+
+        <div class="space-y-2 max-h-[300px] overflow-y-auto custom-scroll pr-1">
+          ${stores.map((s, idx) => `
+            <div class="bg-white rounded-xl p-3 border border-stone-200/80 hover:border-rose-300 transition-all shadow-2xs space-y-2">
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="w-4 h-4 rounded-full bg-stone-900 text-white text-[9px] font-black flex items-center justify-center flex-shrink-0">${idx + 1}</span>
+                    <h6 class="text-xs font-black text-stone-900 truncate">${escapeHtml(s.name)}</h6>
+                    <span class="px-1.5 py-0.2 rounded-md text-[9px] font-bold ${s.itemsFound === s.itemsTotal ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-600'}">
+                      ${s.itemsFound}/${s.itemsTotal} itens
+                    </span>
+                  </div>
+                  <p class="text-[10px] text-stone-500 mt-0.5 truncate" title="${escapeHtml(s.address)}">
+                    📍 ${escapeHtml(s.bairro ? `${s.bairro}, ${s.cidade}` : s.address)}
+                  </p>
+                </div>
+
+                <div class="text-right flex-shrink-0">
+                  <span class="text-[10px] text-stone-400 block">Cesta na loja:</span>
+                  <span class="text-xs sm:text-sm font-black text-rose-600">${formatCurrency(s.basketPrice)}</span>
+                </div>
+              </div>
+
+              <!-- Lista compacta dos itens na loja -->
+              <div class="bg-stone-50/80 rounded-lg p-2 text-[10px] text-stone-600 space-y-1">
+                ${s.items.map(it => `
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="truncate">• ${escapeHtml(it.productName || it.ingredient)}</span>
+                    <strong class="text-stone-800 flex-shrink-0">${formatCurrency(it.price)}</strong>
+                  </div>
+                `).join('')}
+              </div>
+
+              <!-- Ação: Abrir no Google Maps -->
+              <div class="flex items-center justify-end pt-0.5">
+                <a 
+                  href="${escapeHtml(s.mapsUrl)}" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 text-[10px] font-extrabold transition-colors"
+                >
+                  <span>🗺️ Ver rota no Google Maps</span>
+                  <span>↗</span>
+                </a>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // 3. Detalhamento por Ingrediente com Fotos da InfoPrice
+  let detailsHtml = '';
+  const validDetails = details.filter(d => d.availableNearby);
+  if (validDetails.length > 0) {
+    detailsHtml = `
+      <div class="space-y-1.5 pt-1">
+        <details class="group bg-white rounded-xl border border-stone-200/80 p-2.5">
+          <summary class="cursor-pointer text-xs font-extrabold text-stone-800 hover:text-stone-900 flex items-center justify-between select-none">
+            <span class="flex items-center gap-1.5">
+              <span>🏷️</span>
+              <span>Comparativo de Marcas & Menor Preço (${validDetails.length} itens)</span>
+            </span>
+            <span class="group-open:rotate-180 transition-transform text-stone-400 text-xs">▼</span>
+          </summary>
+
+          <div class="pt-2.5 space-y-2">
+            ${validDetails.map(it => {
+              const best = it.bestOffer || {};
+              return `
+              <div class="flex items-center gap-2.5 p-2 rounded-lg bg-stone-50 border border-stone-100">
+                ${best.photo ? `
+                  <img src="${escapeHtml(best.photo)}" alt="${escapeHtml(it.query)}" class="w-10 h-10 object-contain rounded-md bg-white border border-stone-200 flex-shrink-0" onerror="this.style.display='none'">
+                ` : `
+                  <div class="w-10 h-10 rounded-md bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs flex-shrink-0">🥣</div>
+                `}
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between gap-1">
+                    <span class="text-xs font-extrabold text-stone-900 capitalize truncate">${escapeHtml(it.query)}</span>
+                    <span class="text-xs font-black text-emerald-700 flex-shrink-0">${formatCurrency(it.minPrice)}</span>
+                  </div>
+                  <p class="text-[10px] text-stone-500 truncate mt-0.5">${escapeHtml(best.productName || it.query)}</p>
+                  <p class="text-[9px] text-stone-400 mt-0.5">Mais barato em: <strong>${escapeHtml(best.storeName || 'Mercado local')}</strong> • Média: ${formatCurrency(it.avgPrice)}</p>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </details>
+      </div>
+    `;
+  }
+
+  container.innerHTML = `
+    <div class="space-y-3 pt-1">
+      ${summaryHtml}
+      ${storesHtml}
+      ${detailsHtml}
+    </div>
+  `;
+}
+
 function checkUrlForReelParam() {
   const urlParams = new URLSearchParams(window.location.search);
   const reelId = urlParams.get('reel') || window.location.hash.replace('#', '');
@@ -1083,6 +1423,8 @@ window.toggleFavorite = toggleFavorite;
 window.navigateReel = navigateReel;
 window.openOriginalSource = openOriginalSource;
 window.openAuthorProfile = openAuthorProfile;
+window.searchIngredientPrices = searchIngredientPrices;
+window.setQuickCep = setQuickCep;
 
 // Run
 loadReels();

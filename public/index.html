@@ -356,6 +356,68 @@
               </ul>
             </div>
 
+            <!-- ONDE COMPRAR INGREDIENTES PERTO DE VOCÊ (InfoPrice Live Radar) -->
+            <div id="modalIngredientsMarketSection" class="bg-gradient-to-br from-rose-50/70 via-amber-50/50 to-stone-50 rounded-2xl p-3.5 border border-rose-200/70 shadow-2xs space-y-3">
+              <div class="flex items-center justify-between gap-2">
+                <div>
+                  <h4 class="text-xs font-extrabold text-stone-900 flex items-center gap-1.5">
+                    <span>🛒</span>
+                    <span>Onde Comprar os Ingredientes</span>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200/60">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      Preços reais InfoPrice
+                    </span>
+                  </h4>
+                  <p class="text-[11px] text-stone-500 mt-0.5">Veja a cesta completa nos mercados mais próximos de você</p>
+                </div>
+              </div>
+
+              <!-- CEP & Raio Form -->
+              <div class="flex flex-wrap items-center gap-2 pt-0.5">
+                <div class="relative flex-1 min-w-[130px]">
+                  <input 
+                    type="text" 
+                    id="ingredientCepInput" 
+                    placeholder="CEP: 00000-000" 
+                    maxlength="9"
+                    class="w-full bg-white text-xs font-bold rounded-xl pl-7 pr-3 py-1.5 border border-stone-200 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-400 placeholder:text-stone-400 text-stone-800"
+                  >
+                  <span class="absolute left-2.5 top-1.5 text-xs text-stone-400">📍</span>
+                </div>
+
+                <select id="ingredientRadiusSelect" class="bg-white text-xs font-bold rounded-xl px-2.5 py-1.5 border border-stone-200 focus:outline-none focus:border-rose-400 text-stone-700 cursor-pointer">
+                  <option value="3">3 km</option>
+                  <option value="5" selected>5 km</option>
+                  <option value="10">10 km</option>
+                  <option value="15">15 km</option>
+                </select>
+
+                <button 
+                  id="btnFetchIngredientPrices" 
+                  onclick="searchIngredientPrices()" 
+                  class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span id="btnFetchPricesIcon">🔍</span>
+                  <span>Buscar Preços</span>
+                </button>
+              </div>
+
+              <!-- Sugestões Rápidas de CEP -->
+              <div class="flex items-center gap-1.5 text-[10px] text-stone-500 flex-wrap">
+                <span class="font-bold">Testar CEP:</span>
+                <button type="button" onclick="setQuickCep('04025010')" class="px-1.5 py-0.5 bg-white border border-stone-200/80 rounded hover:border-rose-300 hover:text-rose-600 transition-colors">Moema / SP (04025-010)</button>
+                <button type="button" onclick="setQuickCep('02210000')" class="px-1.5 py-0.5 bg-white border border-stone-200/80 rounded hover:border-rose-300 hover:text-rose-600 transition-colors">ZN / SP (02210-000)</button>
+                <button type="button" onclick="setQuickCep('20040002')" class="px-1.5 py-0.5 bg-white border border-stone-200/80 rounded hover:border-rose-300 hover:text-rose-600 transition-colors">Centro / RJ (20040-002)</button>
+              </div>
+
+              <!-- Resultados Dinâmicos -->
+              <div id="ingredientPricesResults" class="space-y-2.5 pt-1">
+                <div class="text-[11px] text-stone-500 bg-white/70 border border-stone-200/60 rounded-xl p-3 text-center">
+                  💡 Digite seu CEP acima para ver os mercados mais próximos com esses ingredientes e quanto custa a receita.
+                </div>
+              </div>
+            </div>
+
             <!-- Dicas / Passo a Passo -->
             <div class="bg-stone-50 rounded-2xl p-3.5 border border-stone-200/70">
               <h4 class="text-xs font-extrabold text-stone-900 mb-2 flex items-center gap-1.5">

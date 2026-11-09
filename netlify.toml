@@ -1,5 +1,11 @@
 [build]
   publish = "public"
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/ingredients-pricing"
+  to = "/.netlify/functions/ingredients-pricing"
+  status = 200
 
 [[headers]]
   for = "/*"
