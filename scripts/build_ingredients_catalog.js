@@ -254,10 +254,10 @@ const SEED_INGREDIENTS = [
     name: 'Ovos Brancos de Galinha',
     category: 'Ovos & Frios',
     keywords: ['ovos', 'ovo', 'ovos brancos', 'gemas', 'claras'],
-    search: 'ovos brancos grandes mantiqueira',
+    search: 'ovos brancos 12 unidades',
     defaultMeta: {
-      descricao: 'OVOS DE GALINHA BRANCOS GRANDES GRANJA 6UN',
-      marca: 'GRANJA'
+      descricao: 'OVOS BRANCOS GRANDES BANDEJA COM 12 UNIDADES',
+      marca: 'MANTIQUEIRA'
     }
   },
   {
@@ -309,10 +309,10 @@ const SEED_INGREDIENTS = [
     name: 'Laranja Pêra',
     category: 'Frutas',
     keywords: ['laranja', 'laranja pera', 'suco de laranja', 'raspas de laranja'],
-    search: 'laranja pera pacote 3kg',
+    search: 'laranja pera kg',
     defaultMeta: {
-      descricao: 'QUALITA LARANJA PERA PREMIUM PACOTE 3KG',
-      marca: 'QUALITÁ'
+      descricao: 'LARANJA PÊRA KG',
+      marca: 'HORTIFRUTI'
     }
   },
   {

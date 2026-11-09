@@ -980,50 +980,50 @@
       "gemas",
       "claras"
     ],
-    "search": "ovos brancos grandes mantiqueira",
+    "search": "ovos brancos 12 unidades",
     "gtins": [
-      "7896982103388",
-      "7896982100035",
-      "7896982104682",
-      "7896982102688",
-      "7896982160015"
+      "7896982140048",
+      "7896700500024",
+      "7896658402142",
+      "7898657270104",
+      "7898936057556"
     ],
     "defaultProduct": {
-      "gtin": "7896982103388",
-      "descricao": "OVOS BRANCOS GRANDES MANTIQUEIRA EMBALAGEM COM 20 UNIDADES",
+      "gtin": "7896982140048",
+      "descricao": "OVOS BRANCOS MANTIQUEIRA COM 12 UNIDADES",
       "marca": "MANTIQUEIRA",
-      "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896982103388.jpg"
+      "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896982140048.jpg"
     },
     "candidates": [
       {
-        "gtin": "7896982103388",
-        "descricao": "OVOS BRANCOS GRANDES MANTIQUEIRA EMBALAGEM COM 20 UNIDADES",
+        "gtin": "7896982140048",
+        "descricao": "OVOS BRANCOS MANTIQUEIRA COM 12 UNIDADES",
         "marca": "MANTIQUEIRA",
-        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896982103388.jpg"
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896982140048.jpg"
       },
       {
-        "gtin": "7896982100035",
-        "descricao": "OVOS BRANCO GRANDE MANTIQUEIRA 20UN",
+        "gtin": "7896700500024",
+        "descricao": "OVOS BRANCOS GRANDE OVOS SANTA MARTA BANDEJA 12 UNIDADES",
+        "marca": "OVOS SANTA MARTA",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896700500024.jpg"
+      },
+      {
+        "gtin": "7896658402142",
+        "descricao": "OVOS BRANCOS EXTRA BANDEJA 12 UNIDADES",
+        "marca": "EXTRA",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896658402142.jpg"
+      },
+      {
+        "gtin": "7898657270104",
+        "descricao": "OVOS EXTRA BRANCOS SANTA CLARA COM 12 UNIDADES",
         "marca": "MANTIQUEIRA",
-        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896982100035.jpg"
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07898657270104.jpg"
       },
       {
-        "gtin": "7896982104682",
-        "descricao": "OVO BRANCO GRANDE MANTIQUEIRA HAPPY EGGS PVC COM 20 UNIDADES",
+        "gtin": "7898936057556",
+        "descricao": "OVOS BRANCOS JULIAO 12 UNIDADES",
         "marca": "MANTIQUEIRA",
-        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896982104682.jpg"
-      },
-      {
-        "gtin": "7896982102688",
-        "descricao": "OVO BRANCO GRANDE GRANEL MANTIQUEIRA CX COM12 BJ DE 30 UN",
-        "marca": "GRANJA",
-        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896982102688.jpg"
-      },
-      {
-        "gtin": "7896982160015",
-        "descricao": "OVO BRANCO GRANDE POLPA MANTIQUEIRA CX COM 40 BJ DE 6 UN",
-        "marca": "GRANJA",
-        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896982160015.jpg"
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07898936057556.jpg"
       }
     ]
   },
@@ -1254,50 +1254,50 @@
       "suco de laranja",
       "raspas de laranja"
     ],
-    "search": "laranja pera pacote 3kg",
+    "search": "laranja pera kg",
     "gtins": [
-      "7895000362455",
-      "7891103500374",
-      "7908370001456",
-      "7898654510999",
-      "7898783720221"
+      "1660",
+      "7890000029506",
+      "7890000129503",
+      "7898971391271",
+      "7898654512382"
     ],
     "defaultProduct": {
-      "gtin": "7895000362455",
-      "descricao": "QUALITA LARANJA PERA PREMIUM PACOTE 3KG",
-      "marca": "QUALITA",
-      "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07895000362455.jpg"
+      "gtin": "1660",
+      "descricao": "LARANJA PÊRA KG",
+      "marca": "HORTIFRUTI",
+      "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/00000000001660.jpg"
     },
     "candidates": [
       {
-        "gtin": "7895000362455",
-        "descricao": "QUALITA LARANJA PERA PREMIUM PACOTE 3KG",
-        "marca": "QUALITA",
-        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07895000362455.jpg"
+        "gtin": "1660",
+        "descricao": "LARANJA PÊRA KG",
+        "marca": "HORTIFRUTI",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/00000000001660.jpg"
       },
       {
-        "gtin": "7891103500374",
-        "descricao": "LARANJA PERA PACOTE 3KG",
-        "marca": "QUALITÁ",
-        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07891103500374.jpg"
+        "gtin": "7890000029506",
+        "descricao": "LARANJA PERA KG",
+        "marca": "HORTIFRUTI",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07890000029506.jpg"
       },
       {
-        "gtin": "7908370001456",
-        "descricao": "LARANJA PERA PACOTE 3KG",
-        "marca": "QUALITÁ",
-        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07908370001456.jpg"
+        "gtin": "7890000129503",
+        "descricao": "LARANJA PERA KG",
+        "marca": "HORTIFRUTI",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07890000129503.jpg"
       },
       {
-        "gtin": "7898654510999",
-        "descricao": "LARANJA PERA CANELAS 3KG PACOTE",
-        "marca": "QUALITÁ",
-        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07898654510999.jpg"
+        "gtin": "7898971391271",
+        "descricao": "LARANJA PERA KG",
+        "marca": "HORTIFRUTI",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07898971391271.jpg"
       },
       {
-        "gtin": "7898783720221",
-        "descricao": "LARANJA PERA PACOTE 3KG",
-        "marca": "QUALITÁ",
-        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07898783720221.jpg"
+        "gtin": "7898654512382",
+        "descricao": "LARANJA PERA KG*********",
+        "marca": "HORTIFRUTI",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07898654512382.jpg"
       }
     ]
   },
