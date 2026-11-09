@@ -33,11 +33,173 @@ function revealString(token) {
   }
 }
 
-// Tokens ativos e estado do player Blob (mantidos fora do DOM)
+// Tokens ativos (mantidos fora do DOM)
 let activeReelToken = '';
 let activeAuthorToken = '';
-let currentBlobUrl = null;
-let currentFetchController = null;
+let activeReelId = null;
+
+// =========================================================================
+// UTILITÁRIOS: escape de HTML, armazenamento local, toast e wake lock
+// =========================================================================
+
+// Escapa texto vindo do banco/IA antes de injetar via innerHTML
+function escapeHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Argumento seguro para handlers inline (onclick="fn(${jsArg(x)})")
+function jsArg(value) {
+  return escapeHtml(JSON.stringify(String(value ?? '')));
+}
+
+function normalizeText(str) {
+  return String(str ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+function formatDuration(seconds) {
+  const s = Math.round(Number(seconds) || 0);
+  if (!s) return '';
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+const store = {
+  get(key, fallback) {
+    try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+  },
+  set(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* modo privado */ }
+  }
+};
+
+// Favoritos ("Salvos") persistidos no navegador
+const FAV_KEY = 'sweetreels:favs';
+const FAV_FILTER = '__FAVS__';
+let favorites = new Set(store.get(FAV_KEY, []));
+
+function isFavorite(id) { return favorites.has(id); }
+
+function toggleFavorite(id, ev) {
+  if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation();
+  const targetId = id || activeReelId;
+  if (!targetId) return;
+  if (favorites.has(targetId)) {
+    favorites.delete(targetId);
+    showToast('Removido dos salvos');
+  } else {
+    favorites.add(targetId);
+    showToast('❤️ Salvo! Veja na aba "Salvos"');
+  }
+  store.set(FAV_KEY, [...favorites]);
+
+  renderCategoryPills();
+  applyFiltersAndRender(currentCategory === FAV_FILTER);
+  if (activeReelId === targetId) updateModalFavButton(targetId);
+}
+
+function updateModalFavButton(id) {
+  const btn = document.getElementById('modalFavBtn');
+  if (!btn) return;
+  const fav = isFavorite(id);
+  btn.innerHTML = fav ? '❤️ <span class="hidden sm:inline">Salvo</span>' : '🤍 <span class="hidden sm:inline">Salvar</span>';
+  btn.setAttribute('aria-pressed', String(fav));
+}
+
+// Progresso do checklist persistido por Reel
+function checksKey(id) { return `sweetreels:checks:${id}`; }
+
+function onCheckChange(reelId, idx, checked) {
+  const done = new Set(store.get(checksKey(reelId), []));
+  if (checked) done.add(idx); else done.delete(idx);
+  store.set(checksKey(reelId), [...done]);
+
+  const label = document.getElementById(`checkLabel_${idx}`);
+  if (label) label.classList.toggle('line-through', checked);
+  if (label) label.classList.toggle('text-stone-400', checked);
+  updateChecklistProgress(reelId);
+}
+
+function updateChecklistProgress(reelId) {
+  const el = document.getElementById('modalChecklistProgress');
+  const reel = allReels.find(r => r.id === reelId);
+  if (!el || !reel) return;
+  const total = cleanAndDeduplicate(reel.checklist_items).length;
+  const done = store.get(checksKey(reelId), []).filter(i => i < total).length;
+  el.textContent = done === 0 ? 'Toque para marcar' : `${done}/${total} ✓`;
+  el.className = done === total && total > 0
+    ? 'text-[10px] font-extrabold text-emerald-600'
+    : 'text-[10px] text-stone-400';
+}
+
+function resetChecklist() {
+  if (!activeReelId) return;
+  store.set(checksKey(activeReelId), []);
+  document.querySelectorAll('#modalChecklistItems input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+  document.querySelectorAll('#modalChecklistItems [id^="checkLabel_"]').forEach(l => l.classList.remove('line-through', 'text-stone-400'));
+  updateChecklistProgress(activeReelId);
+}
+
+async function copyChecklist() {
+  const reel = allReels.find(r => r.id === activeReelId);
+  if (!reel) return;
+  const items = cleanAndDeduplicate(reel.checklist_items);
+  const text = `🛒 ${reel.title}\n\n${items.map(i => `• ${i}`).join('\n')}\n\n${getBaseUrl()}/?reel=${reel.id}`;
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('📋 Lista copiada! Cole no WhatsApp ou notas');
+  } catch {
+    showToast('Não foi possível copiar');
+  }
+}
+
+async function shareReel() {
+  const reel = allReels.find(r => r.id === activeReelId);
+  if (!reel) return;
+  const url = `${getBaseUrl()}/?reel=${reel.id}`;
+  if (navigator.share) {
+    try { await navigator.share({ title: reel.title, text: reel.summary, url }); } catch { /* cancelado */ }
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast('🔗 Link copiado!');
+  } catch {
+    showToast(url);
+  }
+}
+
+let toastTimer;
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  if (!toast) return;
+  toast.textContent = message;
+  toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+  }, 2400);
+}
+
+// Modo cozinha: mantém a tela acesa enquanto o Reel está aberto
+let wakeLock = null;
+async function acquireWakeLock() {
+  try {
+    if ('wakeLock' in navigator && !wakeLock) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    }
+  } catch { /* não suportado ou negado */ }
+}
+function releaseWakeLock() {
+  if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && activeReelId) acquireWakeLock();
+});
 
 export function openOriginalSource() {
   if (!activeReelToken) return;
@@ -49,39 +211,6 @@ export function openAuthorProfile() {
   if (!activeAuthorToken) return;
   const url = revealString(activeAuthorToken);
   if (url) window.open(url, '_blank', 'noopener,noreferrer');
-}
-
-// Reproduz o vídeo através de um Blob URL privado na memória RAM da aba
-async function playVideoSecurely(videoPath) {
-  const videoPlayer = document.getElementById('modalVideoPlayer');
-  
-  // Limpa qualquer Blob URL antigo para evitar acúmulo de memória
-  if (currentBlobUrl) {
-    URL.revokeObjectURL(currentBlobUrl);
-    currentBlobUrl = null;
-  }
-  if (currentFetchController) {
-    currentFetchController.abort();
-    currentFetchController = null;
-  }
-
-  videoPlayer.pause();
-  videoPlayer.removeAttribute('src');
-
-  try {
-    currentFetchController = new AbortController();
-    const response = await fetch(videoPath, { signal: currentFetchController.signal });
-    if (!response.ok) throw new Error('Falha no stream');
-    const videoBlob = await response.blob();
-    currentBlobUrl = URL.createObjectURL(videoBlob);
-    videoPlayer.src = currentBlobUrl;
-    videoPlayer.play().catch(() => {});
-  } catch (err) {
-    if (err.name === 'AbortError') return;
-    // Fallback gracioso
-    videoPlayer.src = videoPath;
-    videoPlayer.play().catch(() => {});
-  }
 }
 
 // Pagination state
@@ -135,6 +264,14 @@ async function loadReels() {
       return cleanReel;
     });
     
+    // Busca via URL (?q=bolo) — compatível com o SearchAction do Schema.org
+    const initialQuery = new URLSearchParams(window.location.search).get('q');
+    if (initialQuery) {
+      currentSearch = initialQuery.trim();
+      document.getElementById('searchInput').value = currentSearch;
+      document.getElementById('clearSearchBtn').classList.remove('hidden');
+    }
+
     renderCategoryPills();
     populateCreatorsDropdown();
     renderPopularTags();
@@ -145,6 +282,12 @@ async function loadReels() {
     checkUrlForReelParam();
   } catch (err) {
     console.error('Erro ao carregar dados:', err);
+    const grid = document.getElementById('reelsGrid');
+    if (grid) grid.innerHTML = `
+      <div class="col-span-full text-center py-16 text-sm text-stone-500">
+        😕 Não foi possível carregar os Reels agora.
+        <button onclick="location.reload()" class="block mx-auto mt-3 px-4 py-1.5 rounded-full bg-stone-900 text-white text-xs font-bold">Tentar novamente</button>
+      </div>`;
   }
 }
 
@@ -156,23 +299,25 @@ function updateTotalBadge() {
 }
 
 // Category Pills
+const PILL_ACTIVE = 'cat-pill active px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs font-bold transition-all bg-stone-900 text-white shadow-sm flex-shrink-0';
+const PILL_IDLE = 'cat-pill px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs font-bold transition-all bg-stone-100 text-stone-600 hover:bg-stone-200 flex-shrink-0';
+
 function renderCategoryPills() {
   const container = document.getElementById('categoryFilters');
   const categories = Array.from(new Set(allReels.map(r => r.category).filter(Boolean)));
-  
-  let html = `
-    <button class="cat-pill active px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs font-bold transition-all bg-stone-900 text-white shadow-sm flex-shrink-0" data-category="ALL" onclick="setCategory('ALL')">
-      🔥 Todos
-    </button>
-  `;
+  const favCount = allReels.filter(r => favorites.has(r.id)).length;
 
-  categories.forEach(cat => {
-    html += `
-      <button class="cat-pill px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs font-bold transition-all bg-stone-100 text-stone-600 hover:bg-stone-200 flex-shrink-0" data-category="${cat}" onclick="setCategory('${cat}')">
-        ${getCategoryIcon(cat)} ${cat}
-      </button>
-    `;
-  });
+  // Se o filtro de salvos ficou vazio, volta para "Todos"
+  if (currentCategory === FAV_FILTER && favCount === 0) currentCategory = 'ALL';
+
+  const pill = (value, label) => `
+    <button class="${currentCategory === value ? PILL_ACTIVE : PILL_IDLE}" data-category="${escapeHtml(value)}" onclick="setCategory(${jsArg(value)})">
+      ${label}
+    </button>`;
+
+  let html = pill('ALL', '🔥 Todos');
+  if (favCount > 0) html += pill(FAV_FILTER, `❤️ Salvos (${favCount})`);
+  categories.forEach(cat => { html += pill(cat, `${getCategoryIcon(cat)} ${escapeHtml(cat)}`); });
 
   container.innerHTML = html;
 }
@@ -192,11 +337,7 @@ function getCategoryIcon(cat) {
 function setCategory(cat) {
   currentCategory = cat;
   document.querySelectorAll('.cat-pill').forEach(btn => {
-    if (btn.dataset.category === cat) {
-      btn.className = 'cat-pill active px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs font-bold transition-all bg-stone-900 text-white shadow-sm flex-shrink-0';
-    } else {
-      btn.className = 'cat-pill px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs font-bold transition-all bg-stone-100 text-stone-600 hover:bg-stone-200 flex-shrink-0';
-    }
+    btn.className = btn.dataset.category === cat ? PILL_ACTIVE : PILL_IDLE;
   });
   applyFiltersAndRender(true);
 }
@@ -208,7 +349,7 @@ function populateCreatorsDropdown() {
   
   const creators = Array.from(new Set(allReels.map(r => r.author?.username).filter(Boolean)));
   select.innerHTML = '<option value="ALL">👤 Todos Criadores</option>' + 
-    creators.map(c => `<option value="${c}">@${c}</option>`).join('');
+    creators.map(c => `<option value="${escapeHtml(c)}">@${escapeHtml(c)}</option>`).join('');
 }
 
 function onCreatorChange(val) {
@@ -241,8 +382,8 @@ function renderPopularTags() {
 
   bar.innerHTML = '<span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mr-1 flex-shrink-0">Tags:</span>' +
     sortedTags.map(tag => `
-      <button onclick="toggleTagFilter('${tag}')" class="tag-pill px-2.5 py-0.5 rounded-lg text-[11px] font-semibold transition-all flex-shrink-0 ${currentTag === tag ? 'bg-rose-500 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}">
-        #${tag}
+      <button onclick="toggleTagFilter(${jsArg(tag)})" class="tag-pill px-2.5 py-0.5 rounded-lg text-[11px] font-semibold transition-all flex-shrink-0 ${currentTag === tag ? 'bg-rose-500 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}">
+        #${escapeHtml(tag)}
       </button>
     `).join('');
 }
@@ -262,19 +403,18 @@ function onSortChange(val) {
 // Core Filtering & Sorting Logic
 function getFilteredAndSortedReels() {
   let list = allReels.filter(r => {
-    const matchCat = currentCategory === 'ALL' || r.category === currentCategory;
+    const matchCat = currentCategory === 'ALL' ||
+      (currentCategory === FAV_FILTER ? favorites.has(r.id) : r.category === currentCategory);
     const matchCreator = currentCreator === 'ALL' || (r.author?.username === currentCreator);
     const matchTag = currentTag === 'ALL' || (r.tags && r.tags.some(t => t.toLowerCase() === currentTag.toLowerCase()));
     
-    const query = currentSearch.toLowerCase();
-    const matchSearch = !query || 
-      (r.title && r.title.toLowerCase().includes(query)) ||
-      (r.summary && r.summary.toLowerCase().includes(query)) ||
-      (r.transcript && r.transcript.toLowerCase().includes(query)) ||
-      (r.author?.name && r.author.name.toLowerCase().includes(query)) ||
-      (r.author?.username && r.author.username.toLowerCase().includes(query)) ||
-      (r.tags && r.tags.some(t => t.toLowerCase().includes(query))) ||
-      (r.checklist_items && r.checklist_items.some(i => i.toLowerCase().includes(query)));
+    const query = normalizeText(currentSearch);
+    const has = (s) => normalizeText(s).includes(query);
+    const matchSearch = !query ||
+      has(r.title) || has(r.summary) || has(r.transcript) ||
+      has(r.author?.name) || has(r.author?.username) ||
+      (r.tags && r.tags.some(has)) ||
+      (r.checklist_items && r.checklist_items.some(has));
 
     return matchCat && matchCreator && matchTag && matchSearch;
   });
@@ -321,62 +461,63 @@ function applyFiltersAndRender(resetPage = false) {
   emptyState.classList.add('hidden');
 
   // Render cards
-  grid.innerHTML = visible.map(r => `
-    <div class="masonry-item bg-white rounded-2xl sm:rounded-3xl overflow-hidden border border-stone-200/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group flex flex-col" onclick="openModal('${r.id}')">
+  grid.innerHTML = visible.map(r => {
+    const title = escapeHtml(r.title);
+    const category = r.category || 'Reels';
+    const cCount = cleanAndDeduplicate(r.checklist_items).length;
+    const duration = formatDuration(r.duration);
+    const fav = isFavorite(r.id);
+    return `
+    <div class="masonry-item bg-white rounded-2xl sm:rounded-3xl overflow-hidden border border-stone-200/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group flex flex-col" onclick="openModal(${jsArg(r.id)})" role="button" tabindex="0" aria-label="${title}" onkeydown="if(event.key==='Enter')openModal(${jsArg(r.id)})">
       
-      <!-- Video / Facade Cover (Vertical 9:16) -->
+      <!-- Capa vertical -->
       <div class="relative bg-stone-100 aspect-[9/14] sm:aspect-[9/13] overflow-hidden flex items-center justify-center">
         ${r.thumbnail ? `
-          <img src="${r.thumbnail}" alt="${r.title}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <img src="${escapeHtml(r.thumbnail)}" alt="${title}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
         ` : `
           <div class="w-full h-full bg-gradient-to-br from-rose-500/80 to-amber-500/80 flex items-center justify-center p-4 text-center text-white">
-            <span class="text-xs font-bold">${r.category}</span>
+            <span class="text-xs font-bold">${escapeHtml(category)}</span>
           </div>
         `}
         
-        <!-- Category Pill Badge -->
+        <!-- Categoria -->
         <div class="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 bg-white/95 backdrop-blur-md px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-extrabold text-stone-800 shadow-xs">
-          ${getCategoryIcon(r.category)} ${r.category.split('&')[0].trim()}
+          ${getCategoryIcon(category)} ${escapeHtml(category.split('&')[0].trim())}
         </div>
 
-        <!-- Play overlay button -->
+        <!-- Salvar -->
+        <button onclick="toggleFavorite(${jsArg(r.id)}, event)" aria-label="${fav ? 'Remover dos salvos' : 'Salvar'}" aria-pressed="${fav}"
+          class="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 z-10 w-8 h-8 rounded-full bg-white/95 backdrop-blur-md shadow-xs flex items-center justify-center text-sm hover:scale-110 transition-transform">
+          ${fav ? '❤️' : '🤍'}
+        </button>
+
+        <!-- Play -->
         <div class="absolute inset-0 bg-black/15 group-hover:bg-black/30 flex items-center justify-center transition-colors">
           <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/95 text-rose-600 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
-            <svg class="w-4 h-4 sm:w-5 sm:h-5 fill-current ml-0.5" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
           </div>
         </div>
 
-        <!-- Checklist count tag -->
-        ${(() => {
-          const cCount = cleanAndDeduplicate(r.checklist_items).length;
-          return cCount > 0 ? `
-            <div class="absolute bottom-2 left-2 sm:bottom-2.5 sm:left-2.5 bg-black/75 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-bold text-white flex items-center gap-1">
-              <span>📋 ${cCount} itens</span>
-            </div>
-          ` : '';
-        })()}
-      </div>
-
-      <!-- Card Content -->
-      <div class="p-2.5 sm:p-4 flex flex-col flex-1">
-        <h3 class="text-xs sm:text-sm font-extrabold text-stone-900 group-hover:text-rose-600 transition-colors leading-tight line-clamp-2">
-          ${r.title}
-        </h3>
-
-        <div class="mt-2 pt-2 border-t border-stone-100 flex items-center justify-between text-[10px] sm:text-xs text-stone-400">
-          <span class="font-bold text-stone-700 truncate max-w-[100px] sm:max-w-[140px]">
-            @${r.author?.username || 'criador'}
-          </span>
-          <span class="text-rose-600 font-extrabold">
-            Ver →
-          </span>
+        <!-- Rodapé da capa: itens + duração -->
+        <div class="absolute bottom-2 inset-x-2 sm:bottom-2.5 sm:inset-x-2.5 flex items-center justify-between gap-1">
+          ${cCount > 0 ? `<span class="bg-black/75 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-bold text-white">📋 ${cCount} itens</span>` : '<span></span>'}
+          ${duration ? `<span class="bg-black/75 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-bold text-white">▶ ${duration}</span>` : ''}
         </div>
       </div>
 
-    </div>
-  `).join('');
+      <!-- Conteúdo -->
+      <div class="p-2.5 sm:p-4 flex flex-col flex-1">
+        <h3 class="mb-2 text-xs sm:text-sm font-extrabold text-stone-900 group-hover:text-rose-600 transition-colors leading-tight line-clamp-2">
+          ${title}
+        </h3>
+        <div class="mt-auto pt-2 border-t border-stone-100 flex items-center justify-between text-[10px] sm:text-xs text-stone-400">
+          <span class="font-bold text-stone-700 truncate max-w-[100px] sm:max-w-[140px]">@${escapeHtml(r.author?.username || 'criador')}</span>
+          <span class="text-rose-600 font-extrabold">Ver →</span>
+        </div>
+      </div>
+
+    </div>`;
+  }).join('');
 
   // Pagination Controls
   if (visible.length < filtered.length) {
@@ -425,7 +566,7 @@ function updateFilterBarUI(totalFiltered) {
   const resetBtn = document.getElementById('resetFiltersBtn');
 
   if (counter) {
-    counter.textContent = `${totalFiltered} ${totalFiltered === 1 ? 'Reels' : 'Reels'}`;
+    counter.textContent = `${totalFiltered} ${totalFiltered === 1 ? 'Reel' : 'Reels'}`;
   }
 
   let hasActiveFilter = (currentCategory !== 'ALL' || currentCreator !== 'ALL' || currentTag !== 'ALL' || currentSearch !== '');
@@ -441,10 +582,10 @@ function updateFilterBarUI(totalFiltered) {
   if (chipsContainer) {
     let chipsHtml = '';
     if (currentCreator !== 'ALL') {
-      chipsHtml += `<span class="inline-flex items-center gap-1 bg-stone-100 text-stone-700 px-2 py-0.5 rounded-full text-[11px] font-bold">@${currentCreator} <button onclick="onCreatorChange('ALL')" class="text-stone-400 hover:text-stone-600">✕</button></span>`;
+      chipsHtml += `<span class="inline-flex items-center gap-1 bg-stone-100 text-stone-700 px-2 py-0.5 rounded-full text-[11px] font-bold">@${escapeHtml(currentCreator)} <button onclick="onCreatorChange('ALL'); document.getElementById('creatorSelect').value='ALL'" class="text-stone-400 hover:text-stone-600" aria-label="Remover filtro">✕</button></span>`;
     }
     if (currentTag !== 'ALL') {
-      chipsHtml += `<span class="inline-flex items-center gap-1 bg-rose-50 text-rose-700 px-2 py-0.5 rounded-full text-[11px] font-bold">#${currentTag} <button onclick="toggleTagFilter('${currentTag}')" class="text-rose-400 hover:text-rose-600">✕</button></span>`;
+      chipsHtml += `<span class="inline-flex items-center gap-1 bg-rose-50 text-rose-700 px-2 py-0.5 rounded-full text-[11px] font-bold">#${escapeHtml(currentTag)} <button onclick="toggleTagFilter(${jsArg(currentTag)})" class="text-rose-400 hover:text-rose-600" aria-label="Remover filtro">✕</button></span>`;
     }
     chipsContainer.innerHTML = chipsHtml;
   }
@@ -540,25 +681,34 @@ function openModal(id) {
 
   // Toca o vídeo: prioriza o CDN do Cloudinary (100% nativo e sem barras pretas) ou fallback para o embed oficial
   if (reel.video_file && typeof reel.video_file === 'string' && reel.video_file.startsWith('http')) {
-    loadCloudinaryVideoPlayer(reel.video_file);
+    loadCloudinaryVideoPlayer(reel.video_file, reel.thumbnail);
   } else {
     loadInstagramEmbed(reel.id);
   }
 
-  // Interactive Checklist
+  activeReelId = reel.id;
+  updateModalFavButton(reel.id);
+
+  // Checklist interativo com progresso salvo no navegador
   document.getElementById('modalChecklistTitle').textContent = `📋 ${reel.checklist_title || 'Componentes / Ingredientes'}`;
   const checklistList = document.getElementById('modalChecklistItems');
   const cleanItems = cleanAndDeduplicate(reel.checklist_items);
+  const doneSet = new Set(store.get(checksKey(reel.id), []));
   if (cleanItems && cleanItems.length > 0) {
-    checklistList.innerHTML = cleanItems.map((item, idx) => `
-      <li class="flex items-start gap-2 p-1 rounded-lg hover:bg-stone-100/70 cursor-pointer select-none" onclick="toggleCheck('${reel.id}_${idx}')">
-        <input type="checkbox" id="check_${reel.id}_${idx}" class="mt-0.5 rounded text-rose-600 focus:ring-rose-500 cursor-pointer">
-        <label for="check_${reel.id}_${idx}" class="cursor-pointer leading-tight">${item}</label>
-      </li>
-    `).join('');
-    checklistList.parentElement.classList.remove('hidden');
+    checklistList.innerHTML = cleanItems.map((item, idx) => {
+      const done = doneSet.has(idx);
+      return `
+      <li>
+        <label class="flex items-start gap-2 p-1 rounded-lg hover:bg-stone-100/70 cursor-pointer select-none">
+          <input type="checkbox" ${done ? 'checked' : ''} onchange="onCheckChange(${jsArg(reel.id)}, ${idx}, this.checked)" class="mt-0.5 rounded text-rose-600 focus:ring-rose-500 cursor-pointer accent-rose-600">
+          <span id="checkLabel_${idx}" class="leading-tight ${done ? 'line-through text-stone-400' : ''}">${escapeHtml(item)}</span>
+        </label>
+      </li>`;
+    }).join('');
+    checklistList.closest('[data-section]').classList.remove('hidden');
+    updateChecklistProgress(reel.id);
   } else {
-    checklistList.parentElement.classList.add('hidden');
+    checklistList.closest('[data-section]').classList.add('hidden');
   }
 
   // Steps
@@ -567,7 +717,7 @@ function openModal(id) {
     stepsList.innerHTML = reel.steps_or_tips.map((step, idx) => `
       <li class="flex items-start gap-2.5">
         <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-rose-100 text-rose-700 text-[10px] sm:text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">${idx + 1}</span>
-        <span class="text-stone-700 leading-tight">${step}</span>
+        <span class="text-stone-700 leading-tight">${escapeHtml(step)}</span>
       </li>
     `).join('');
     stepsList.parentElement.classList.remove('hidden');
@@ -576,14 +726,14 @@ function openModal(id) {
   }
 
   // Transcript
-  document.getElementById('modalTranscript').textContent = `"${reel.transcript}"`;
+  document.getElementById('modalTranscript').textContent = `"${reel.transcript || ''}"`;
 
   // Tags
   const tagsContainer = document.getElementById('modalTags');
   if (reel.tags && reel.tags.length > 0) {
     tagsContainer.innerHTML = reel.tags.map(t => `
-      <button onclick="closeModal(); toggleTagFilter('${t}')" class="px-2 py-0.5 rounded-md bg-stone-100 hover:bg-rose-50 hover:text-rose-600 text-stone-600 text-[11px] font-semibold transition-colors">
-        #${t}
+      <button onclick="closeModal(); toggleTagFilter(${jsArg(t.trim().toLowerCase())})" class="px-2 py-0.5 rounded-md bg-stone-100 hover:bg-rose-50 hover:text-rose-600 text-stone-600 text-[11px] font-semibold transition-colors">
+        #${escapeHtml(t)}
       </button>
     `).join('');
   } else {
@@ -595,17 +745,25 @@ function openModal(id) {
   modal.classList.remove('hidden');
   modal.classList.add('flex');
   document.body.style.overflow = 'hidden';
+  modal.querySelector('.custom-scroll')?.scrollTo(0, 0);
+
+  acquireWakeLock();
 
   // Dynamic SEO & JSON-LD
   updateReelSeo(reel);
 }
 
-function toggleCheck(id) {
-  const cb = document.getElementById(`check_${id}`);
-  if (cb) cb.checked = !cb.checked;
+// Navega para o Reel anterior/próximo dentro da lista filtrada atual
+function navigateReel(direction) {
+  if (!activeReelId) return;
+  const list = getFilteredAndSortedReels();
+  const idx = list.findIndex(r => r.id === activeReelId);
+  if (idx === -1) return;
+  const next = list[idx + direction];
+  if (next) openModal(next.id);
 }
 
-function loadCloudinaryVideoPlayer(videoUrl) {
+function loadCloudinaryVideoPlayer(videoUrl, poster) {
   const container = document.getElementById('modalEmbedContainer');
   if (!container) return;
 
@@ -613,7 +771,8 @@ function loadCloudinaryVideoPlayer(videoUrl) {
     <div class="relative w-full h-[500px] sm:h-[560px] bg-stone-900 rounded-2xl overflow-hidden flex items-center justify-center shadow-inner">
       <video 
         id="modalVideoPlayer"
-        src="${videoUrl}" 
+        src="${escapeHtml(videoUrl)}" 
+        ${poster ? `poster="${escapeHtml(poster)}"` : ''}
         controls 
         autoplay 
         playsinline 
@@ -669,6 +828,8 @@ function closeModal(updateHistory = true) {
 
   activeReelToken = '';
   activeAuthorToken = '';
+  activeReelId = null;
+  releaseWakeLock();
 
   resetSeo(updateHistory);
 }
@@ -742,7 +903,7 @@ function updateReelSeo(reel) {
   const origin = getBaseUrl();
   const canonicalUrl = `${origin}/?reel=${reel.id}`;
   const fullThumbnail = `${origin}${reel.thumbnail}`;
-  const fullVideo = `${origin}${reel.video_file || ''}`;
+  const fullVideo = /^https?:\/\//.test(reel.video_file || '') ? reel.video_file : (reel.video_file ? `${origin}${reel.video_file}` : undefined);
 
   // Update Page Title
   document.title = `${reel.title} - SweetReels`;
@@ -897,7 +1058,11 @@ window.addEventListener('click', e => {
   if (e.target === modal) closeModal();
 });
 window.addEventListener('keydown', e => {
+  if (!activeReelId) return;
   if (e.key === 'Escape') closeModal();
+  if (e.target instanceof HTMLInputElement) return;
+  if (e.key === 'ArrowRight') navigateReel(1);
+  if (e.key === 'ArrowLeft') navigateReel(-1);
 });
 
 // Expor funções globais para eventos inline do DOM (módulos ES isolam escopo)
@@ -910,7 +1075,12 @@ window.resetAllFilters = resetAllFilters;
 window.clearSearch = clearSearch;
 window.toggleTagFilter = toggleTagFilter;
 window.loadMoreItems = loadMoreItems;
-window.toggleCheck = toggleCheck;
+window.onCheckChange = onCheckChange;
+window.resetChecklist = resetChecklist;
+window.copyChecklist = copyChecklist;
+window.shareReel = shareReel;
+window.toggleFavorite = toggleFavorite;
+window.navigateReel = navigateReel;
 window.openOriginalSource = openOriginalSource;
 window.openAuthorProfile = openAuthorProfile;
 

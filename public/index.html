@@ -255,18 +255,42 @@
     <!-- Modal Card Container -->
     <div class="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col" onclick="event.stopPropagation()">
       
-      <!-- Top Bar: Voltar, Categoria, Fechar -->
-      <div class="bg-white px-4 py-3 border-b border-stone-100 flex items-center justify-between gap-2 flex-shrink-0">
-        <button onclick="closeModal()" class="flex items-center gap-1 text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 px-3 py-1.5 rounded-full transition-colors">
-          <span>←</span>
-          <span>Voltar</span>
-        </button>
-        <span id="modalCategory" class="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-rose-50 text-rose-700 border border-rose-100">
-          Categoria
-        </span>
-        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-500 font-bold text-sm transition-colors">
-          ✕
-        </button>
+      <!-- Top Bar: Voltar, Categoria, Ações (Navegar, Salvar, Compartilhar, Fechar) -->
+      <div class="bg-white px-3 sm:px-4 py-2.5 sm:py-3 border-b border-stone-100 flex items-center justify-between gap-2 flex-shrink-0">
+        <div class="flex items-center gap-2">
+          <button onclick="closeModal()" class="flex items-center gap-1 text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 px-3 py-1.5 rounded-full transition-colors">
+            <span>←</span>
+            <span>Voltar</span>
+          </button>
+          <span id="modalCategory" class="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-rose-50 text-rose-700 border border-rose-100">
+            Categoria
+          </span>
+        </div>
+
+        <div class="flex items-center gap-1.5">
+          <!-- Navegar Anterior / Próximo -->
+          <button onclick="navigateReel(-1)" title="Reel anterior (Seta esquerda)" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-600 font-bold text-xs transition-colors">
+            ◀
+          </button>
+          <button onclick="navigateReel(1)" title="Próximo Reel (Seta direita)" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-600 font-bold text-xs transition-colors">
+            ▶
+          </button>
+
+          <!-- Salvar / Favoritar -->
+          <button id="modalFavBtn" onclick="toggleFavorite()" class="flex items-center gap-1 text-xs font-bold text-stone-700 bg-stone-100 hover:bg-rose-50 hover:text-rose-600 px-3 py-1.5 rounded-full transition-colors">
+            🤍 <span class="hidden sm:inline">Salvar</span>
+          </button>
+
+          <!-- Compartilhar -->
+          <button onclick="shareReel()" title="Compartilhar link" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-600 text-xs transition-colors">
+            🔗
+          </button>
+
+          <!-- Fechar -->
+          <button onclick="closeModal()" aria-label="Fechar" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-500 font-bold text-sm transition-colors ml-1">
+            ✕
+          </button>
+        </div>
       </div>
 
       <!-- Scrollable Content -->
@@ -308,13 +332,24 @@
               <p id="modalSummary" class="text-xs text-stone-700 leading-relaxed"></p>
             </div>
 
-            <!-- Checklist Interativo (Ingredientes / Exercícios / etc) -->
-            <div class="bg-stone-50 rounded-2xl p-3.5 border border-stone-200/70">
-              <div class="flex items-center justify-between mb-2">
-                <h4 id="modalChecklistTitle" class="text-xs font-extrabold text-stone-900 flex items-center gap-1.5">
-                  📋 Componentes / Ingredientes
-                </h4>
-                <span class="text-[10px] text-stone-400">Toque para marcar</span>
+            <!-- Checklist Interativo com Progresso e Cópia (Ingredientes / Passos) -->
+            <div data-section class="bg-stone-50 rounded-2xl p-3.5 border border-stone-200/70">
+              <div class="flex items-center justify-between mb-2 gap-2 flex-wrap">
+                <div class="flex items-center gap-2">
+                  <h4 id="modalChecklistTitle" class="text-xs font-extrabold text-stone-900 flex items-center gap-1.5">
+                    📋 Componentes / Ingredientes
+                  </h4>
+                  <span id="modalChecklistProgress" class="text-[10px] text-stone-400">Toque para marcar</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <button onclick="copyChecklist()" title="Copiar lista para o WhatsApp/Notas" class="px-2 py-0.5 text-[11px] font-bold text-stone-600 hover:text-stone-900 bg-stone-200/60 hover:bg-stone-200 rounded-lg transition-colors flex items-center gap-1">
+                    <span>📋</span>
+                    <span class="hidden sm:inline">Copiar lista</span>
+                  </button>
+                  <button onclick="resetChecklist()" title="Desmarcar todos" class="px-1.5 py-0.5 text-[11px] font-bold text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 rounded-lg transition-colors">
+                    ↺
+                  </button>
+                </div>
               </div>
               <ul id="modalChecklistItems" class="space-y-1.5 text-xs text-stone-700">
                 <!-- Checkboxes via JS -->
@@ -367,6 +402,9 @@
 
     </div>
   </div>
+
+  <!-- Floating Toast Notification -->
+  <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-stone-900/90 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg backdrop-blur-md opacity-0 translate-y-4 pointer-events-none transition-all duration-300"></div>
 
   <!-- App Script (ES Module with Firebase) -->
   <script type="module" src="/app.js"></script>
