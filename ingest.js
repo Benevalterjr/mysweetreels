@@ -118,7 +118,11 @@ Tarefas:
 2. Identifique e selecione OBRIGATORIAMENTE uma das categorias oficiais: ${JSON.stringify(OFFICIAL_CATEGORIES)}. Detalhes específicos (ex: confeitaria, bolo, doce, treino de pernas, maquiagem) devem ir EXCLUSIVAMENTE nas tags, e NUNCA no nome da categoria.
 3. Crie um título altamente atraente e otimizado para SEO no Google.
 4. Crie um resumo conciso e envolvente em 2 frases.
-5. DEDUPLICAÇÃO DE ITENS: Gere a lista de ingredientes/checklist de forma estritamente DEDUPLICADA (NUNCA repita o mesmo ingrediente mais de uma vez. Se for usado em partes diferentes, unifique em um único item com a quantidade somada ou nota explicativa. NUNCA inclua títulos de seção como itens do checklist).
+5. DEDUPLICAÇÃO E PADRONIZAÇÃO DE INGREDIENTES: 
+   - Cada ingrediente DEVE ser um item único e isolado. NUNCA misture dois ingredientes na mesma linha (ex: NUNCA "morangos e mirtilos", separe em "Morangos frescos" e "Mirtilos").
+   - NUNCA repita o mesmo ingrediente mais de uma vez. Se for usado em partes diferentes (ex: massa e cobertura), unifique em um único item com a quantidade total somada.
+   - Use nomes canônicos e reconhecíveis em gôndolas de supermercado (ex: "Morango fresco", "Nata ou creme de leite fresco", "Leite condensado", "Leite integral", "Biscoito champagne", "Açúcar refinado").
+   - NUNCA inclua títulos de seção (ex: "Para a calda", "Recheio:") como itens do checklist.
 6. Gere tags pertinentes (sem o caractere #).`;
 
   const startTime = Date.now();
