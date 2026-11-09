@@ -121,40 +121,66 @@ Tarefas:
 
   const startTime = Date.now();
   let response;
-  try {
-    response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            { text: prompt },
-            { inlineData: { mimeType: 'video/mp4', data: base64Video } }
-          ]
-        }
-      ],
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            title: { type: Type.STRING },
-            category: { 
-              type: Type.STRING, 
-              enum: OFFICIAL_CATEGORIES,
-              description: 'Categoria oficial padronizada' 
-            },
-            tags: { type: Type.ARRAY, items: { type: Type.STRING } },
-            summary: { type: Type.STRING },
-            checklist_title: { type: Type.STRING },
-            checklist_items: { type: Type.ARRAY, items: { type: Type.STRING } },
-            steps_or_tips: { type: Type.ARRAY, items: { type: Type.STRING } },
-            transcript: { type: Type.STRING }
+  const generatePayload = {
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          { text: prompt },
+          { inlineData: { mimeType: 'video/mp4', data: base64Video } }
+        ]
+      }
+    ],
+    config: {
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          title: { type: Type.STRING },
+          category: { 
+            type: Type.STRING, 
+            enum: OFFICIAL_CATEGORIES,
+            description: 'Categoria oficial padronizada' 
           },
-          required: ['title', 'category', 'tags', 'summary', 'checklist_title', 'checklist_items', 'steps_or_tips', 'transcript']
+          tags: { type: Type.ARRAY, items: { type: Type.STRING } },
+          summary: { type: Type.STRING },
+          checklist_title: { type: Type.STRING },
+          checklist_items: { type: Type.ARRAY, items: { type: Type.STRING } },
+          steps_or_tips: { type: Type.ARRAY, items: { type: Type.STRING } },
+          transcript: { type: Type.STRING }
+        },
+        required: ['title', 'category', 'tags', 'summary', 'checklist_title', 'checklist_items', 'steps_or_tips', 'transcript']
+      }
+    }
+  };
+
+  try {
+    const candidateModels = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.6-flash'];
+    let lastErr = null;
+
+    for (const modelName of candidateModels) {
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          console.log(`[Gemini Flash] Enviando para ${modelName} (tentativa ${attempt})...`);
+          response = await ai.models.generateContent({
+            model: modelName,
+            ...generatePayload
+          });
+          if (response && response.text) break;
+        } catch (callErr) {
+          lastErr = callErr;
+          console.warn(`[Gemini Flash] Tentativa ${attempt} no modelo ${modelName} falhou: ${callErr.message}`);
+          if (attempt < 2) {
+            await new Promise(r => setTimeout(r, 2000));
+          }
         }
       }
-    });
+      if (response && response.text) break;
+    }
+
+    if (!response || !response.text) {
+      throw lastErr || new Error('Não foi possível obter resposta dos modelos Gemini.');
+    }
 
     const latencyMs = Date.now() - startTime;
     const usage = response.usageMetadata || {};
