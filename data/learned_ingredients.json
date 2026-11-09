@@ -1,0 +1,86 @@
+[
+  {
+    "id": "biscoito_champagne",
+    "name": "Biscoito champagne",
+    "category": "BOLOS, BISCOITOS E BOLACHAS",
+    "keywords": [
+      "biscoito champagne",
+      "biscoito champagne"
+    ],
+    "search": "biscoito champagne",
+    "gtins": [
+      "7891962035451",
+      "7895000482702",
+      "7898950172150"
+    ],
+    "defaultProduct": {
+      "gtin": "7891962035451",
+      "descricao": "BISCOITO CHAMPAGNE COM AÇÚCAR CRISTAL BAUDUCCO CAIXA 150G",
+      "marca": "BAUDUCCO",
+      "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07891962035451.jpg"
+    },
+    "candidates": [
+      {
+        "gtin": "7891962035451",
+        "descricao": "BISCOITO CHAMPAGNE COM AÇÚCAR CRISTAL BAUDUCCO CAIXA 150G",
+        "marca": "BAUDUCCO",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07891962035451.jpg"
+      },
+      {
+        "gtin": "7895000482702",
+        "descricao": "QUALITA BISCOITO CHAMPAGNE 150G",
+        "marca": "QUALITA",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07895000482702.jpg"
+      },
+      {
+        "gtin": "7898950172150",
+        "descricao": "BISCOITO CHAMPAGNE PORTO ALEGRE  150G",
+        "marca": "ALEGRE",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07898950172150.jpg"
+      }
+    ],
+    "learnedAt": "2026-11-09T20:12:09.730Z"
+  },
+  {
+    "id": "biscoitos_champanhe",
+    "name": "Biscoitos champanhe",
+    "category": "BOLOS, BISCOITOS E BOLACHAS",
+    "keywords": [
+      "biscoitos champanhe",
+      "biscoitos champanhe"
+    ],
+    "search": "biscoitos champanhe",
+    "gtins": [
+      "7891962035451",
+      "7895000482702",
+      "7898950172150"
+    ],
+    "defaultProduct": {
+      "gtin": "7891962035451",
+      "descricao": "BISCOITO CHAMPAGNE COM AÇÚCAR CRISTAL BAUDUCCO CAIXA 150G",
+      "marca": "BAUDUCCO",
+      "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07891962035451.jpg"
+    },
+    "candidates": [
+      {
+        "gtin": "7891962035451",
+        "descricao": "BISCOITO CHAMPAGNE COM AÇÚCAR CRISTAL BAUDUCCO CAIXA 150G",
+        "marca": "BAUDUCCO",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07891962035451.jpg"
+      },
+      {
+        "gtin": "7895000482702",
+        "descricao": "QUALITA BISCOITO CHAMPAGNE 150G",
+        "marca": "QUALITA",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07895000482702.jpg"
+      },
+      {
+        "gtin": "7898950172150",
+        "descricao": "BISCOITO CHAMPAGNE PORTO ALEGRE  150G",
+        "marca": "ALEGRE",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07898950172150.jpg"
+      }
+    ],
+    "learnedAt": "2026-11-09T20:15:33.134Z"
+  }
+]

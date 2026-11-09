@@ -123,7 +123,11 @@
     ],
     "search": "creme de leite fresco tirolez",
     "gtins": [
-      "7896030522048"
+      "7898133290626",
+      "7896030522048",
+      "7896275970185",
+      "7896256600094",
+      "7897277705386"
     ],
     "defaultProduct": {
       "gtin": "7896030522048",
@@ -133,10 +137,34 @@
     },
     "candidates": [
       {
+        "gtin": "7898133290626",
+        "descricao": "NATA CRIOULO 300G",
+        "marca": "CRIOULO",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07898133290626.jpg"
+      },
+      {
         "gtin": "7896030522048",
         "descricao": "CREME DE LEITE PASTEURIZADO FRESCO TIROLEZ 250G",
         "marca": "TIROLEZ",
         "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896030522048.jpg"
+      },
+      {
+        "gtin": "7896275970185",
+        "descricao": "NATA 300G FRIMESA",
+        "marca": "FRIMESA",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896275970185.jpg"
+      },
+      {
+        "gtin": "7896256600094",
+        "descricao": "NATA REFRIGERADA TIROL POTE 300G",
+        "marca": "TIROL",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896256600094.jpg"
+      },
+      {
+        "gtin": "7897277705386",
+        "descricao": "CREME DE LEITE FRESCO ATILATTE 250G",
+        "marca": "ATILATTE",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07897277705386.jpg"
       }
     ]
   },
@@ -1370,7 +1398,12 @@
     ],
     "search": "morango fresco nacional caixa 250g",
     "gtins": [
-      "7898935886348"
+      "7898935886348",
+      "7299999221906",
+      "7908013000761",
+      "7898224783075",
+      "7898581260356",
+      "7898919942244"
     ],
     "defaultProduct": {
       "gtin": "7898935886348",
@@ -1384,6 +1417,30 @@
         "descricao": "MORANGO FRESCO NACIONAL CAIXA 250G",
         "marca": "HORTIFRUTI",
         "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07898935886348.jpg"
+      },
+      {
+        "gtin": "7299999221906",
+        "descricao": "MORANGO NACIONAL",
+        "marca": "HORTIFRUTI",
+        "foto": null
+      },
+      {
+        "gtin": "7908013000761",
+        "descricao": "MORANGO NACIONAL 250G",
+        "marca": "HORTIFRUTI",
+        "foto": null
+      },
+      {
+        "gtin": "7898224783075",
+        "descricao": "MORANGO NACIONAL 250G",
+        "marca": "HORTIFRUTI",
+        "foto": null
+      },
+      {
+        "gtin": "7898581260356",
+        "descricao": "MORANGO ORGANICO BANDEJA 250G DP",
+        "marca": "HORTIFRUTI",
+        "foto": null
       }
     ]
   },
