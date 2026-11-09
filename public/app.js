@@ -280,6 +280,8 @@ async function loadReels() {
     updateTotalBadge();
     updateSiteJsonLd();
     checkUrlForReelParam();
+    checkShareTargetAndParams();
+    setTimeout(checkClipboardForReels, 1200);
   } catch (err) {
     console.error('Erro ao carregar dados:', err);
     const grid = document.getElementById('reelsGrid');
@@ -1381,6 +1383,245 @@ function checkUrlForReelParam() {
   }
 }
 
+// ==========================================
+// PWA & Extração de Reels (Clipboard / Share Target)
+// ==========================================
+
+export function extractInstagramUrl(text) {
+  if (!text || typeof text !== 'string') return null;
+  const match = text.match(/https?:\/\/(?:www\.)?instagram\.com\/(?:reel|reels|p)\/([A-Za-z0-9_-]+)/i);
+  return match ? `https://www.instagram.com/reel/${match[1]}/` : null;
+}
+
+let pendingClipboardUrl = null;
+let lastCheckedClipboard = '';
+
+export function openExtractModal(initialUrl = '') {
+  const modal = document.getElementById('extractModal');
+  const input = document.getElementById('extractUrlInput');
+  resetExtractForm();
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    if (initialUrl && input) {
+      input.value = initialUrl;
+    }
+  }
+}
+
+export function closeExtractModal() {
+  const modal = document.getElementById('extractModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+}
+
+export function resetExtractForm() {
+  const form = document.getElementById('extractForm');
+  const progress = document.getElementById('extractProgress');
+  const errorBox = document.getElementById('extractError');
+  const btn = document.getElementById('btnStartExtract');
+  if (form) form.classList.remove('hidden');
+  if (progress) progress.classList.add('hidden');
+  if (errorBox) errorBox.classList.add('hidden');
+  if (btn) btn.disabled = false;
+}
+
+export async function pasteFromClipboard() {
+  const input = document.getElementById('extractUrlInput');
+  if (!navigator.clipboard || !navigator.clipboard.readText) {
+    showToast('Acesso à área de transferência não suportado ou bloqueado.');
+    return;
+  }
+  try {
+    const text = await navigator.clipboard.readText();
+    const cleanUrl = extractInstagramUrl(text) || text.trim();
+    if (input) {
+      input.value = cleanUrl;
+      input.focus();
+    }
+    showToast('Link colado com sucesso!');
+  } catch (err) {
+    showToast('Permissão para colar foi negada pelo navegador.');
+  }
+}
+
+export async function startReelExtraction(overrideUrl = null) {
+  const input = document.getElementById('extractUrlInput');
+  const rawUrl = overrideUrl || (input ? input.value : '');
+  const cleanUrl = extractInstagramUrl(rawUrl);
+
+  if (!cleanUrl) {
+    showToast('Por favor, informe um link válido de Reels do Instagram.');
+    return;
+  }
+
+  const form = document.getElementById('extractForm');
+  const progress = document.getElementById('extractProgress');
+  const errorBox = document.getElementById('extractError');
+  const errorMsg = document.getElementById('extractErrorMsg');
+  const titleElem = document.getElementById('extractStatusTitle');
+  const subElem = document.getElementById('extractStatusSubtitle');
+
+  const stepDownload = document.getElementById('stepDownload');
+  const stepGemini = document.getElementById('stepGemini');
+  const stepInfoPrice = document.getElementById('stepInfoPrice');
+
+  if (form) form.classList.add('hidden');
+  if (errorBox) errorBox.classList.add('hidden');
+  if (progress) progress.classList.remove('hidden');
+
+  function updateStep(step) {
+    if (step === 1) {
+      if (titleElem) titleElem.textContent = 'Baixando vídeo do Instagram...';
+      if (subElem) subElem.textContent = 'Obtendo áudio em alta qualidade e metadados';
+      if (stepDownload) stepDownload.className = 'flex items-center gap-2 text-rose-600 font-bold';
+      if (stepGemini) stepGemini.className = 'flex items-center gap-2 text-stone-400';
+      if (stepInfoPrice) stepInfoPrice.className = 'flex items-center gap-2 text-stone-400';
+    } else if (step === 2) {
+      if (titleElem) titleElem.textContent = 'Analisando receita com Gemini IA...';
+      if (subElem) subElem.textContent = 'Transcrevendo áudio e identificando ingredientes sem repetições';
+      if (stepDownload) stepDownload.className = 'flex items-center gap-2 text-emerald-600 font-medium';
+      if (stepGemini) stepGemini.className = 'flex items-center gap-2 text-rose-600 font-bold';
+      if (stepInfoPrice) stepInfoPrice.className = 'flex items-center gap-2 text-stone-400';
+    } else if (step === 3) {
+      if (titleElem) titleElem.textContent = 'Quase pronto! Organizando receita...';
+      if (subElem) subElem.textContent = 'Integrando radar de preços nos supermercados próximos';
+      if (stepDownload) stepDownload.className = 'flex items-center gap-2 text-emerald-600 font-medium';
+      if (stepGemini) stepGemini.className = 'flex items-center gap-2 text-emerald-600 font-medium';
+      if (stepInfoPrice) stepInfoPrice.className = 'flex items-center gap-2 text-rose-600 font-bold';
+    }
+  }
+
+  updateStep(1);
+  const timer1 = setTimeout(() => updateStep(2), 3500);
+  const timer2 = setTimeout(() => updateStep(3), 9000);
+
+  try {
+    const response = await fetch('/api/extract-reel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: cleanUrl })
+    });
+
+    clearTimeout(timer1);
+    clearTimeout(timer2);
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || 'Falha ao processar o Reels.');
+    }
+
+    const newReel = data.reel;
+    showToast('🎉 Receita extraída com sucesso!');
+
+    // Higieniza e protege o novo reels
+    const realUrl = newReel.url || (newReel.id ? `https://www.instagram.com/reel/${newReel.id}/` : '');
+    const realAuthorUrl = newReel.author?.profile_url || (newReel.author?.username ? `https://www.instagram.com/${newReel.author.username}/` : '');
+    const cleanReel = { ...newReel };
+    cleanReel._tk = obscureString(realUrl);
+    cleanReel._atk = obscureString(realAuthorUrl);
+    delete cleanReel.url;
+    if (cleanReel.author) {
+      cleanReel.author = { ...cleanReel.author };
+      delete cleanReel.author.profile_url;
+    }
+
+    allReels = [cleanReel, ...allReels.filter(r => r.id !== cleanReel.id)];
+    applyFiltersAndRender(true);
+    populateCreatorsDropdown();
+    updateTotalBadge();
+
+    // Fecha o modal de extração e abre os detalhes da nova receita
+    closeExtractModal();
+    openModal(cleanReel.id);
+
+  } catch (err) {
+    clearTimeout(timer1);
+    clearTimeout(timer2);
+    console.error('[Extract Error]:', err);
+    if (progress) progress.classList.add('hidden');
+    if (errorBox) {
+      errorBox.classList.remove('hidden');
+      if (errorMsg) errorMsg.textContent = err.message || 'Erro ao processar o link. Verifique se o post é público.';
+    }
+  }
+}
+
+export function showClipboardBanner(url) {
+  pendingClipboardUrl = url;
+  const banner = document.getElementById('clipboardBanner');
+  const preview = document.getElementById('clipboardPreviewText');
+  if (banner) {
+    if (preview) preview.textContent = url;
+    banner.classList.remove('hidden');
+  }
+}
+
+export function dismissClipboardBanner() {
+  const banner = document.getElementById('clipboardBanner');
+  if (banner) banner.classList.add('hidden');
+  if (pendingClipboardUrl) {
+    sessionStorage.setItem('dismissed_clip_' + pendingClipboardUrl, '1');
+  }
+  pendingClipboardUrl = null;
+}
+
+export function extractFromClipboardBanner() {
+  const url = pendingClipboardUrl;
+  dismissClipboardBanner();
+  if (url) {
+    openExtractModal(url);
+    startReelExtraction(url);
+  }
+}
+
+export async function checkClipboardForReels() {
+  if (!navigator.clipboard || !navigator.clipboard.readText) return;
+  if (document.visibilityState !== 'visible') return;
+
+  try {
+    const text = await navigator.clipboard.readText();
+    if (!text || text === lastCheckedClipboard) return;
+
+    const igUrl = extractInstagramUrl(text);
+    if (igUrl) {
+      lastCheckedClipboard = text;
+      if (sessionStorage.getItem('dismissed_clip_' + igUrl)) return;
+      showClipboardBanner(igUrl);
+    }
+  } catch (err) {
+    // Permissão não concedida no momento
+  }
+}
+
+function checkShareTargetAndParams() {
+  const params = new URLSearchParams(window.location.search);
+  const sharedText = params.get('url') || params.get('text');
+  if (sharedText) {
+    const igUrl = extractInstagramUrl(sharedText);
+    if (igUrl) {
+      window.history.replaceState({}, '', '/');
+      openExtractModal(igUrl);
+      startReelExtraction(igUrl);
+    }
+  }
+}
+
+// Registro do Service Worker PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(err => {
+      console.warn('[PWA] Service Worker não registrado:', err);
+    });
+  });
+}
+
+// Eventos de detecção automática da prancheta
+window.addEventListener('focus', checkClipboardForReels);
+document.addEventListener('visibilitychange', checkClipboardForReels);
+
 // Popstate listener (botão voltar/avançar do navegador)
 window.addEventListener('popstate', () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -1425,6 +1666,15 @@ window.openOriginalSource = openOriginalSource;
 window.openAuthorProfile = openAuthorProfile;
 window.searchIngredientPrices = searchIngredientPrices;
 window.setQuickCep = setQuickCep;
+
+// PWA & Extração de novos Reels
+window.openExtractModal = openExtractModal;
+window.closeExtractModal = closeExtractModal;
+window.resetExtractForm = resetExtractForm;
+window.pasteFromClipboard = pasteFromClipboard;
+window.startReelExtraction = startReelExtraction;
+window.dismissClipboardBanner = dismissClipboardBanner;
+window.extractFromClipboardBanner = extractFromClipboardBanner;
 
 // Run
 loadReels();

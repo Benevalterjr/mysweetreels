@@ -256,19 +256,21 @@ Tarefas:
   return newReel;
 }
 
-// CLI usage
-const targetUrl = process.argv[2];
-if (targetUrl) {
-  ingestReel(targetUrl)
-    .then(reel => {
-      console.log('\nDados Finais do Post:');
-      console.log(JSON.stringify(reel, null, 2));
-      process.exit(0);
-    })
-    .catch(err => {
-      console.error('Falha na ingestão:', err);
-      process.exit(1);
-    });
+// CLI usage (apenas se executado diretamente via terminal)
+if (process.argv[1] && process.argv[1].endsWith('ingest.js')) {
+  const targetUrl = process.argv[2];
+  if (targetUrl) {
+    ingestReel(targetUrl)
+      .then(reel => {
+        console.log('\nDados Finais do Post:');
+        console.log(JSON.stringify(reel, null, 2));
+        process.exit(0);
+      })
+      .catch(err => {
+        console.error('Falha na ingestão:', err);
+        process.exit(1);
+      });
+  }
 }
 
 export { ingestReel };

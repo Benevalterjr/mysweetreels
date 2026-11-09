@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { monitor } from './lib/gemini_monitor.js';
 import { getRecipeIngredientsPricing } from './lib/infoprice.js';
+import { ingestReel } from './ingest.js';
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.resolve('public');
@@ -12,6 +13,7 @@ const MIME_TYPES = {
   '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
   '.mp4': 'video/mp4',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
@@ -30,6 +32,51 @@ const server = http.createServer((req, res) => {
       'Access-Control-Allow-Origin': '*'
     });
     res.end(JSON.stringify(monitor.getDashboardStats(), null, 2));
+    return;
+  }
+
+  // API endpoint para extração de receitas a partir do link do Reels (PWA / Web)
+  if (urlPath === '/api/extract-reel') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204);
+      res.end();
+      return;
+    }
+
+    if (req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => {
+        body += chunk;
+        if (body.length > 1e6) req.destroy();
+      });
+      req.on('end', async () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          const rawUrl = (payload.url || '').trim();
+          if (!rawUrl) {
+            throw new Error('Informe o link do Reels do Instagram para extrair.');
+          }
+
+          console.log(`\n[API /api/extract-reel] Iniciando extração para: ${rawUrl}`);
+          const newReel = await ingestReel(rawUrl);
+
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ success: true, reel: newReel }));
+        } catch (err) {
+          console.error('[API /api/extract-reel] Erro:', err.message);
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ success: false, error: err.message }));
+        }
+      });
+      return;
+    }
+
+    res.writeHead(405, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ success: false, error: 'Método não permitido. Use POST.' }));
     return;
   }
 
