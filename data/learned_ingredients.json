@@ -82,5 +82,194 @@
       }
     ],
     "learnedAt": "2026-11-09T20:15:33.134Z"
+  },
+  {
+    "id": "pudim",
+    "name": "Pudim",
+    "category": "IOGURTES E SOBREMESAS",
+    "keywords": [
+      "pudim",
+      "pudim"
+    ],
+    "search": "pudim",
+    "gtins": [
+      "7891097000881",
+      "606529347475",
+      "7891048045114",
+      "7898755200027",
+      "7895000475056",
+      "7895000475063"
+    ],
+    "defaultProduct": {
+      "gtin": "7891097000881",
+      "descricao": "SOBREMESA LÁCTEA PUDIM LEITE CONDENSADO BATAVO DELÍCIAS DO FORNO 200G 2 UNIDADES",
+      "marca": "BATAVO",
+      "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07891097000881.jpg"
+    },
+    "candidates": [
+      {
+        "gtin": "7891097000881",
+        "descricao": "SOBREMESA LÁCTEA PUDIM LEITE CONDENSADO BATAVO DELÍCIAS DO FORNO 200G 2 UNIDADES",
+        "marca": "BATAVO",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07891097000881.jpg"
+      },
+      {
+        "gtin": "606529347475",
+        "descricao": "PUDIM DE LEITE CONDENSADO DOCERIA DA REBEKA 120G",
+        "marca": "DOCERIA DA REBEKA",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/00606529347475.jpg"
+      },
+      {
+        "gtin": "7891048045114",
+        "descricao": "PÓ PARA PUDIM BAUNILHA DR  OETKER CAIXA 50G",
+        "marca": "DR. OETKER",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07891048045114.jpg"
+      },
+      {
+        "gtin": "7898755200027",
+        "descricao": "SOBREMESA LÁCTEA PUDIM LEITE CONDENSADO CALDA CARAMELO CHANDELLE POTE 100G",
+        "marca": "CHANDELLE",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07898755200027.jpg"
+      },
+      {
+        "gtin": "7895000475056",
+        "descricao": "QUALITA PUDIM CHOCOLATE 50G",
+        "marca": "QUALITA",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07895000475056.jpg"
+      },
+      {
+        "gtin": "7895000475063",
+        "descricao": "QUALITA PÓ PARA PREPARO DE PUDIM SABOR BAUNILHA 50G",
+        "marca": "QUALITÁ",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07895000475063.jpg"
+      }
+    ],
+    "learnedAt": "2026-11-09T20:50:14.164Z"
+  },
+  {
+    "id": "calda_caramelo",
+    "name": "Calda caramelo",
+    "category": "IOGURTES E SOBREMESAS",
+    "keywords": [
+      "calda caramelo",
+      "calda caramelo"
+    ],
+    "search": "calda caramelo",
+    "gtins": [
+      "78912274",
+      "7891097000522",
+      "7896625211210",
+      "7898755200027",
+      "34000003662",
+      "7896292002487"
+    ],
+    "defaultProduct": {
+      "gtin": "78912274",
+      "descricao": "SOBREMESA LÁCTEA FLAN COM CALDA CARAMELO BATAVO BANDEJA 200G 2 UNIDADES",
+      "marca": "BATAVO",
+      "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/00000078912274.jpg"
+    },
+    "candidates": [
+      {
+        "gtin": "78912274",
+        "descricao": "SOBREMESA LÁCTEA FLAN COM CALDA CARAMELO BATAVO BANDEJA 200G 2 UNIDADES",
+        "marca": "BATAVO",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/00000078912274.jpg"
+      },
+      {
+        "gtin": "7891097000522",
+        "descricao": "SOBREMESA LÁCTEA FLAN CALDA CARAMELO BATAVO BANDEJA 400G 4UN",
+        "marca": "BATAVO",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07891097000522.jpg"
+      },
+      {
+        "gtin": "7896625211210",
+        "descricao": "SOBREMESA LACTEA FLAN BAUNILHA CALDA CARAMELO VIGOR 190G 2UN",
+        "marca": "VIGOR",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896625211210.jpg"
+      },
+      {
+        "gtin": "7898755200027",
+        "descricao": "SOBREMESA LÁCTEA PUDIM LEITE CONDENSADO CALDA CARAMELO CHANDELLE POTE 100G",
+        "marca": "CHANDELLE",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07898755200027.jpg"
+      },
+      {
+        "gtin": "34000003662",
+        "descricao": "CALDA CARAMELO HERSHEY'S SQUEEZE 623G",
+        "marca": "HERSHEY'S",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/00034000003662.jpg"
+      },
+      {
+        "gtin": "7896292002487",
+        "descricao": "PO PARA PREPARO DE PUDIM DE LEITE CONDENSADO E CALDA DE CARAMELO DIET PARA DIETAS DE INGESTAO CONTROLADA DE ACUCARES LOWCUCAR 135G SENDO 100G DE PUDIM E 35G DE CALDA PRONTA",
+        "marca": null,
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896292002487.jpg"
+      }
+    ],
+    "learnedAt": "2026-11-09T20:50:14.728Z"
+  },
+  {
+    "id": "agua",
+    "name": "Agua",
+    "category": "ÁGUAS",
+    "keywords": [
+      "agua",
+      "agua"
+    ],
+    "search": "agua",
+    "gtins": [
+      "7894900531008",
+      "7896065880106",
+      "7896024761729",
+      "7896065870497",
+      "7896050200124",
+      "7896065880069"
+    ],
+    "defaultProduct": {
+      "gtin": "7894900531008",
+      "descricao": "ÁGUA MINERAL NATURAL EXTRA COM GÁS GARRAFA PET CRYSTAL 500ML",
+      "marca": "CRYSTAL",
+      "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07894900531008.jpg"
+    },
+    "candidates": [
+      {
+        "gtin": "7894900531008",
+        "descricao": "ÁGUA MINERAL NATURAL EXTRA COM GÁS GARRAFA PET CRYSTAL 500ML",
+        "marca": "CRYSTAL",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07894900531008.jpg"
+      },
+      {
+        "gtin": "7896065880106",
+        "descricao": "ÁGUA MINERAL NATURAL SEM GÁS MINALBA 1,5L",
+        "marca": "MINALBA",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896065880106.jpg"
+      },
+      {
+        "gtin": "7896024761729",
+        "descricao": "BISCOITO ÁGUA COM GERGELIM PIRAQUÊ 215G",
+        "marca": "PIRAQUÊ",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896024761729.jpg"
+      },
+      {
+        "gtin": "7896065870497",
+        "descricao": "ÁGUA MINERAL NATURAL COM GÁS GARRAFA MINALBA 510ML",
+        "marca": "MINALBA",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896065870497.jpg"
+      },
+      {
+        "gtin": "7896050200124",
+        "descricao": "AGUARDENTE DE CANA CACHAÇA VELHO BARREIRO 910ML",
+        "marca": "VELHO BARREIRO",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896050200124.jpg"
+      },
+      {
+        "gtin": "7896065880069",
+        "descricao": "ÁGUA MINERAL NATURAL SEM GÁS MINALBA 510ML",
+        "marca": "MINALBA",
+        "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896065880069.jpg"
+      }
+    ],
+    "learnedAt": "2026-11-09T20:56:58.804Z"
   }
 ]

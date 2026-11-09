@@ -110,20 +110,25 @@ async function ingestReel(rawUrl) {
     "Finanças & Negócios"
   ];
 
-  const prompt = `Você é o curador especialista do "SweetReels", uma plataforma estilo Pinterest de Reels de alto valor.
-Analise com atenção o áudio falado e o conteúdo visual deste Reels.
+  const prompt = `Você é o curador especialista e Master Chef de IA do "SweetReels", uma plataforma premium estilo Pinterest que transforma Reels do Instagram em guias práticos e receitas prontas para execução.
+Analise com extrema atenção o áudio falado, o texto na tela e todo o conteúdo visual deste Reels.
 
 Tarefas:
-1. Transcreva com fidelidade o que foi falado no áudio.
+1. Transcreva com fidelidade o que foi falado no áudio (ou informe brevemente se não há áudio falado).
 2. Identifique e selecione OBRIGATORIAMENTE uma das categorias oficiais: ${JSON.stringify(OFFICIAL_CATEGORIES)}. Detalhes específicos (ex: confeitaria, bolo, doce, treino de pernas, maquiagem) devem ir EXCLUSIVAMENTE nas tags, e NUNCA no nome da categoria.
 3. Crie um título altamente atraente e otimizado para SEO no Google.
 4. Crie um resumo conciso e envolvente em 2 frases.
-5. DEDUPLICAÇÃO E PADRONIZAÇÃO DE INGREDIENTES: 
-   - Cada ingrediente DEVE ser um item único e isolado. NUNCA misture dois ingredientes na mesma linha (ex: NUNCA "morangos e mirtilos", separe em "Morangos frescos" e "Mirtilos").
-   - NUNCA repita o mesmo ingrediente mais de uma vez. Se for usado em partes diferentes (ex: massa e cobertura), unifique em um único item com a quantidade total somada.
-   - Use nomes canônicos e reconhecíveis em gôndolas de supermercado (ex: "Morango fresco", "Nata ou creme de leite fresco", "Leite condensado", "Leite integral", "Biscoito champagne", "Açúcar refinado").
-   - NUNCA inclua títulos de seção (ex: "Para a calda", "Recheio:") como itens do checklist.
-6. Gere tags pertinentes (sem o caractere #).`;
+5. ENGENHARIA REVERSA CULINÁRIA & INGREDIENTES DE SUPERMERCADO:
+   - Se o vídeo for de gastronomia/confeitaria/culinária:
+     * SE FOR UM VÍDEO DE PRODUTO PRONTO, DEGUSTAÇÃO OU VITRINE (onde o autor só exibe o doce/prato pronto, ex: barra de pudim recheada, bolo cortado, sobremesa artesanal): NUNCA gere passos de desembrulho (ex: "retire o papel") nem ingredientes compostos prontos (ex: "pudim cremoso"). Em vez disso, faça a ENGENHARIA REVERSA culinária inteligente da receita: deduza a lista de ingredientes reais de supermercado necessários para o usuário reproduzir a sobremesa em casa do zero (ex: "Chocolate branco em barra", "Leite condensado", "Leite integral", "Ovos", "Açúcar refinado").
+     * Cada ingrediente DEVE ser um item único e isolado. NUNCA misture dois ingredientes na mesma linha (ex: NUNCA "morangos e mirtilos", separe em "Morango fresco" e "Mirtilo").
+     * NUNCA repita o mesmo ingrediente mais de uma vez. Unifique itens repetidos somando as quantidades.
+     * Use nomes canônicos e reconhecíveis em gôndolas de supermercado (ex: "Chocolate branco em barra", "Morango fresco", "Nata ou creme de leite fresco", "Leite condensado", "Leite integral", "Biscoito champagne", "Açúcar refinado", "Ovos").
+     * NUNCA inclua títulos de seção (ex: "Para a calda", "Recheio:") como itens do checklist.
+6. MODO DE PREPARO / DICAS PRÁTICAS:
+   - Forneça passos claros, práticos e realizáveis para fazer a receita com perfeição.
+   - SEMPRE que a receita tiver recheios elaborados, inclua no final de steps_or_tips uma "Dica Express" para quem quiser montar em poucos minutos com atalhos de produtos prontos (ex: "Dica Express: Para uma montagem rápida de 10 minutos, você pode usar mistura para pudim e cobertura de caramelo pronta").
+7. Gere tags pertinentes (sem o caractere #).`;
 
   const startTime = Date.now();
   let response;
