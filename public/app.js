@@ -1544,7 +1544,16 @@ export async function startReelExtraction(overrideUrl = null) {
     if (progress) progress.classList.add('hidden');
     if (errorBox) {
       errorBox.classList.remove('hidden');
-      if (errorMsg) errorMsg.textContent = err.message || 'Erro ao processar o link. Verifique se o post é público.';
+      let msg = err.message || 'Erro ao processar o link. Verifique se o post é público.';
+      try {
+        const parsed = JSON.parse(msg);
+        if (parsed.error?.message) {
+          msg = parsed.error.message;
+        } else if (parsed.message) {
+          msg = parsed.message;
+        }
+      } catch (e) {}
+      if (errorMsg) errorMsg.textContent = msg;
     }
   }
 }
