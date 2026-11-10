@@ -2110,5 +2110,280 @@
         "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07893333229001.jpg"
       }
     ]
+  },
+  {
+    "id": "cream_cheese",
+    "name": "Cream Cheese",
+    "category": "Laticínios",
+    "keywords": [
+      "cream cheese",
+      "queijo cream cheese",
+      "creamcheese"
+    ],
+    "search": "cream cheese",
+    "gtins": [
+      "7893333325000",
+      "7893333325109",
+      "7622300801779",
+      "7891143012585",
+      "7896068944355",
+      "7891097102387",
+      "7891143019676"
+    ],
+    "defaultProduct": {
+      "gtin": "7893333325000",
+      "descricao": "CREAM CHEESE PHILADELPHIA POTE 150G",
+      "marca": "PHILADELPHIA",
+      "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07893333325000.jpg"
+    },
+    "candidates": [
+      {
+        "gtin": "7893333325000",
+        "descricao": "CREAM CHEESE PHILADELPHIA POTE 150G",
+        "marca": "PHILADELPHIA"
+      },
+      {
+        "gtin": "7893333325109",
+        "descricao": "CREAM CHEESE LIGHT PHILADELPHIA POTE 150G",
+        "marca": "PHILADELPHIA"
+      },
+      {
+        "gtin": "7622300801779",
+        "descricao": "CREAM CHEESE TRADICIONAL PHILADELPHIA POTE 300G",
+        "marca": "PHILADELPHIA"
+      },
+      {
+        "gtin": "7891143012585",
+        "descricao": "CREAM CHEESE TRADICIONAL POLENGHI POTE 150G",
+        "marca": "POLENGHI"
+      },
+      {
+        "gtin": "7896068944355",
+        "descricao": "CREAM CHEESE TRADICIONAL DANUBIO POTE 150G",
+        "marca": "DANUBIO"
+      },
+      {
+        "gtin": "7891097102387",
+        "descricao": "CREAM CHEESE TRADICIONAL PRÉSIDENT POTE 150G",
+        "marca": "PRÉSIDENT"
+      },
+      {
+        "gtin": "7891143019676",
+        "descricao": "CREAM CHEESE TRADICIONAL POLENGHI POTE 300G",
+        "marca": "POLENGHI"
+      }
+    ]
+  },
+  {
+    "id": "mirtilo",
+    "name": "Mirtilo Fresco",
+    "category": "Hortifrúti",
+    "keywords": [
+      "mirtilo",
+      "mirtilos",
+      "mirtilo fresco",
+      "mirtilos frescos",
+      "blueberry",
+      "blueberries"
+    ],
+    "search": "mirtilo",
+    "gtins": [
+      "804639730150",
+      "7898935886010",
+      "7804668230006",
+      "8102049006400",
+      "7895000392384",
+      "7896214534089"
+    ],
+    "defaultProduct": {
+      "gtin": "804639730150",
+      "descricao": "MIRTILO 125G",
+      "marca": "HORTIFRUTI",
+      "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/000804639730150.jpg"
+    },
+    "candidates": [
+      {
+        "gtin": "804639730150",
+        "descricao": "MIRTILO 125G",
+        "marca": "HORTIFRUTI"
+      },
+      {
+        "gtin": "7898935886010",
+        "descricao": "MIRTILO IMPORTADO BERRY GOOD BANDEJA 125G",
+        "marca": "BERRY GOOD"
+      },
+      {
+        "gtin": "7804668230006",
+        "descricao": "MIRTILO IMPORTADO 125G",
+        "marca": "IMPORTADO"
+      },
+      {
+        "gtin": "8102049006400",
+        "descricao": "MIRTILO NATURIPE CAIXA 125G",
+        "marca": "NATURIPE"
+      },
+      {
+        "gtin": "7895000392384",
+        "descricao": "TQ MIRTILOS CONG TAEQ 400G",
+        "marca": "TAEQ"
+      },
+      {
+        "gtin": "7896214534089",
+        "descricao": "GELEIA MIRTILO QUEENSBERRY CLASSIC VIDRO 320G",
+        "marca": "QUEENSBERRY"
+      }
+    ]
+  },
+  {
+    "id": "amora",
+    "name": "Amora Fresca",
+    "category": "Hortifrúti",
+    "keywords": [
+      "amora",
+      "amoras",
+      "amora fresca",
+      "amoras frescas",
+      "amora congelada"
+    ],
+    "search": "amora",
+    "gtins": [
+      "7892012003000",
+      "7896519222490",
+      "7896519222421",
+      "7898702152706",
+      "7896519212309",
+      "7896214532603"
+    ],
+    "defaultProduct": {
+      "gtin": "7892012003000",
+      "descricao": "FRUTA CONG AMORA PRATICO 400G",
+      "marca": "PRATICO",
+      "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07892012003000.jpg"
+    },
+    "candidates": [
+      {
+        "gtin": "7892012003000",
+        "descricao": "FRUTA CONG AMORA PRATICO 400G",
+        "marca": "PRATICO"
+      },
+      {
+        "gtin": "7896519222490",
+        "descricao": "AMORA CONGELADA DE MARCHI PACOTE 300G",
+        "marca": "DE MARCHI"
+      },
+      {
+        "gtin": "7896519222421",
+        "descricao": "AMORA CONGELADA DE MARCHI PACOTE 400G",
+        "marca": "DE MARCHI"
+      },
+      {
+        "gtin": "7898702152706",
+        "descricao": "AMORAS CONGELADA MOMENTO MAMBO 500G",
+        "marca": "MAMBO"
+      },
+      {
+        "gtin": "7896519212309",
+        "descricao": "POLPA DE AMORA INTEGRAL CONGELADA DE MARCHI 100G",
+        "marca": "DE MARCHI"
+      },
+      {
+        "gtin": "7896214532603",
+        "descricao": "GELEIA AMORA QUEENSBERRY CLASSIC VIDRO 320G",
+        "marca": "QUEENSBERRY"
+      }
+    ]
+  },
+  {
+    "id": "framboesa",
+    "name": "Framboesa Fresca",
+    "category": "Hortifrúti",
+    "keywords": [
+      "framboesa",
+      "framboesas",
+      "framboesa fresca",
+      "framboesas frescas",
+      "framboesa congelada"
+    ],
+    "search": "framboesa",
+    "gtins": [
+      "7892018063015",
+      "7895000392360",
+      "7899934814622",
+      "7896519210077",
+      "7896214532405"
+    ],
+    "defaultProduct": {
+      "gtin": "7892018063015",
+      "descricao": "FRUTA CONGELADA FRAMBOESA PRATICO 300G",
+      "marca": "PRATICO",
+      "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07892018063015.jpg"
+    },
+    "candidates": [
+      {
+        "gtin": "7892018063015",
+        "descricao": "FRUTA CONGELADA FRAMBOESA PRATICO 300G",
+        "marca": "PRATICO"
+      },
+      {
+        "gtin": "7895000392360",
+        "descricao": "FRAMBOESAS CONGELADAS TAEQ 400G",
+        "marca": "TAEQ"
+      },
+      {
+        "gtin": "7899934814622",
+        "descricao": "FRAMBOESA ORGANICA CONGELADA OBA BEM QUERER 300G",
+        "marca": "OBA"
+      },
+      {
+        "gtin": "7896519210077",
+        "descricao": "POLPA DE FRAMBOESA INTEGRAL CONGELADA DE MARCHI 100G",
+        "marca": "DE MARCHI"
+      },
+      {
+        "gtin": "7896214532405",
+        "descricao": "GELEIA CLASSIC SABOR FRAMBOESA QUEENSBERRY POTE 320G",
+        "marca": "QUEENSBERRY"
+      }
+    ]
+  },
+  {
+    "id": "frutas_vermelhas",
+    "name": "Frutas Vermelhas",
+    "category": "Hortifrúti",
+    "keywords": [
+      "frutas vermelhas",
+      "fruta vermelha",
+      "frutas do bosque"
+    ],
+    "search": "frutas vermelhas",
+    "gtins": [
+      "7896519259939",
+      "7898996549824",
+      "7898702152379",
+      "7896214532405"
+    ],
+    "defaultProduct": {
+      "gtin": "7896519259939",
+      "descricao": "FRUTAS VERMELHAS CONGELADAS DE MARCHI PACOTE 400G",
+      "marca": "DE MARCHI",
+      "foto": "https://s3.amazonaws.com/infoprice-prd-imagens/gtin/07896519259939.jpg"
+    },
+    "candidates": [
+      {
+        "gtin": "7896519259939",
+        "descricao": "FRUTAS VERMELHAS CONGELADAS DE MARCHI PACOTE 400G",
+        "marca": "DE MARCHI"
+      },
+      {
+        "gtin": "7898996549824",
+        "descricao": "MIX DE FRUTAS VERMELHAS CONGELADAS PRATICO 1,02KG",
+        "marca": "PRATICO"
+      },
+      {
+        "gtin": "7898702152379",
+        "descricao": "FRUTAS VERMELHAS CONGELADAS MOMENTO MAMBO 500G",
+        "marca": "MAMBO"
+      }
+    ]
   }
 ]
