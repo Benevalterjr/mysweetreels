@@ -99,6 +99,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
   <style>
+    html, body {
+      overflow-x: hidden;
+      max-width: 100vw;
+      width: 100%;
+    }
+
+    #detailModal, #extractModal {
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #fafaf9;
@@ -383,34 +394,34 @@
   <!-- ========================================================================= -->
   <!-- MODAL VIEWER REFINADO (Zero fundo preto desengonçado, design limpo & mobile) -->
   <!-- ========================================================================= -->
-  <div id="detailModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm items-center justify-center p-0 sm:p-4">
+  <div id="detailModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm items-center justify-center p-0 sm:p-4 overflow-hidden max-w-full w-full">
     
     <!-- Modal Card Container -->
-    <div class="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col" onclick="event.stopPropagation()">
+    <div class="bg-white w-full max-w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col" onclick="event.stopPropagation()">
       
       <!-- Top Bar: Voltar, Categoria, Ações (Navegar, Salvar, Compartilhar, Fechar) -->
-      <div class="bg-white px-3 sm:px-4 py-2.5 sm:py-3 border-b border-stone-100 flex items-center justify-between gap-2 flex-shrink-0">
-        <div class="flex items-center gap-2">
-          <button onclick="closeModal()" class="flex items-center gap-1 text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 px-3 py-1.5 rounded-full transition-colors">
+      <div class="bg-white px-2.5 sm:px-4 py-2 sm:py-3 border-b border-stone-100 flex items-center justify-between gap-1.5 sm:gap-2 flex-shrink-0 w-full min-w-0 max-w-full">
+        <div class="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+          <button onclick="closeModal()" class="flex items-center gap-1 text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 px-2.5 sm:px-3 py-1.5 rounded-full transition-colors flex-shrink-0" title="Voltar">
             <span>←</span>
-            <span>Voltar</span>
+            <span class="hidden xs:inline">Voltar</span>
           </button>
-          <span id="modalCategory" class="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-rose-50 text-rose-700 border border-rose-100">
+          <span id="modalCategory" class="px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-extrabold bg-rose-50 text-rose-700 border border-rose-100 truncate max-w-[130px] sm:max-w-none">
             Categoria
           </span>
         </div>
 
-        <div class="flex items-center gap-1.5">
-          <!-- Navegar Anterior / Próximo -->
-          <button onclick="navigateReel(-1)" title="Reel anterior (Seta esquerda)" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-600 font-bold text-xs transition-colors">
+        <div class="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
+          <!-- Navegar Anterior / Próximo (Visível em telas maiores sm para não quebrar a largura no mobile) -->
+          <button onclick="navigateReel(-1)" title="Reel anterior (Seta esquerda)" class="hidden sm:flex w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 items-center justify-center text-stone-600 font-bold text-xs transition-colors">
             ◀
           </button>
-          <button onclick="navigateReel(1)" title="Próximo Reel (Seta direita)" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-600 font-bold text-xs transition-colors">
+          <button onclick="navigateReel(1)" title="Próximo Reel (Seta direita)" class="hidden sm:flex w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 items-center justify-center text-stone-600 font-bold text-xs transition-colors">
             ▶
           </button>
 
           <!-- Salvar / Favoritar -->
-          <button id="modalFavBtn" onclick="toggleFavorite()" class="flex items-center gap-1 text-xs font-bold text-stone-700 bg-stone-100 hover:bg-rose-50 hover:text-rose-600 px-3 py-1.5 rounded-full transition-colors">
+          <button id="modalFavBtn" onclick="toggleFavorite()" class="flex items-center justify-center gap-1 text-xs font-bold text-stone-700 bg-stone-100 hover:bg-rose-50 hover:text-rose-600 px-2.5 sm:px-3 py-1.5 rounded-full transition-colors" title="Salvar">
             🤍 <span class="hidden sm:inline">Salvar</span>
           </button>
 
@@ -420,25 +431,25 @@
           </button>
 
           <!-- Fechar -->
-          <button onclick="closeModal()" aria-label="Fechar" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-500 font-bold text-sm transition-colors ml-1">
+          <button onclick="closeModal()" aria-label="Fechar" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-500 font-bold text-sm transition-colors">
             ✕
           </button>
         </div>
       </div>
 
       <!-- Scrollable Content -->
-      <div class="overflow-y-auto custom-scroll flex-1 p-4 sm:p-6">
-        <div class="flex flex-col md:flex-row gap-6 items-start">
+      <div class="overflow-y-auto overflow-x-hidden custom-scroll flex-1 p-3.5 sm:p-6 w-full max-w-full">
+        <div class="flex flex-col md:flex-row gap-5 sm:gap-6 items-start w-full max-w-full min-w-0">
           
           <!-- COLUNA ESQUERDA: Player Oficial do Instagram (Zero Armazenamento Local) -->
-          <div class="w-full md:w-[350px] flex-shrink-0 flex justify-center">
-            <div id="modalEmbedContainer" class="w-full max-w-[340px] flex items-center justify-center rounded-2xl overflow-hidden bg-stone-50 border border-stone-200/80 shadow-xs relative min-h-[440px]">
+          <div class="w-full max-w-full md:w-[350px] flex-shrink-0 flex justify-center mx-auto">
+            <div id="modalEmbedContainer" class="w-full max-w-full sm:max-w-[340px] flex items-center justify-center rounded-2xl overflow-hidden bg-stone-50 border border-stone-200/80 shadow-xs relative min-h-[380px] sm:min-h-[440px]">
               <!-- Player do Instagram injetado dinamicamente -->
             </div>
           </div>
 
           <!-- COLUNA DIREITA: Título, Resumo, Checklist e Transcrição -->
-          <div class="flex-1 min-w-0 space-y-4">
+          <div class="flex-1 min-w-0 w-full max-w-full space-y-4">
             
             <!-- Criador e Título -->
             <div>
@@ -490,13 +501,13 @@
             </div>
 
             <!-- ONDE COMPRAR INGREDIENTES PERTO DE VOCÊ (InfoPrice Live Radar) -->
-            <div id="modalIngredientsMarketSection" class="bg-gradient-to-br from-rose-50/70 via-amber-50/50 to-stone-50 rounded-2xl p-3.5 border border-rose-200/70 shadow-2xs space-y-3">
-              <div class="flex items-center justify-between gap-2">
+            <div id="modalIngredientsMarketSection" class="bg-gradient-to-br from-rose-50/70 via-amber-50/50 to-stone-50 rounded-2xl p-3 sm:p-3.5 border border-rose-200/70 shadow-2xs space-y-3 w-full max-w-full overflow-hidden">
+              <div class="flex items-center justify-between gap-2 flex-wrap">
                 <div>
-                  <h4 class="text-xs font-extrabold text-stone-900 flex items-center gap-1.5">
+                  <h4 class="text-xs font-extrabold text-stone-900 flex items-center gap-1.5 flex-wrap">
                     <span>🛒</span>
                     <span>Onde Comprar os Ingredientes</span>
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200/60">
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200/60 whitespace-nowrap">
                       <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                       Preços reais InfoPrice
                     </span>
@@ -506,8 +517,8 @@
               </div>
 
               <!-- CEP & Raio Form -->
-              <div class="flex flex-wrap items-center gap-2 pt-0.5">
-                <div class="relative flex-1 min-w-[130px]">
+              <div class="flex flex-wrap items-center gap-2 pt-0.5 w-full min-w-0">
+                <div class="relative flex-1 min-w-[120px]">
                   <input 
                     type="text" 
                     id="ingredientCepInput" 
@@ -518,7 +529,7 @@
                   <span class="absolute left-2.5 top-1.5 text-xs text-stone-400">📍</span>
                 </div>
 
-                <select id="ingredientRadiusSelect" class="bg-white text-xs font-bold rounded-xl px-2.5 py-1.5 border border-stone-200 focus:outline-none focus:border-rose-400 text-stone-700 cursor-pointer">
+                <select id="ingredientRadiusSelect" class="bg-white text-xs font-bold rounded-xl px-2.5 py-1.5 border border-stone-200 focus:outline-none focus:border-rose-400 text-stone-700 cursor-pointer flex-shrink-0">
                   <option value="3">3 km</option>
                   <option value="5" selected>5 km</option>
                   <option value="10">10 km</option>
@@ -528,7 +539,7 @@
                 <button 
                   id="btnFetchIngredientPrices" 
                   onclick="searchIngredientPrices()" 
-                  class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                  class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0 whitespace-nowrap"
                 >
                   <span id="btnFetchPricesIcon">🔍</span>
                   <span>Buscar Preços</span>
@@ -536,8 +547,8 @@
               </div>
 
               <!-- Sugestões Rápidas de CEP -->
-              <div class="flex items-center gap-1.5 text-[10px] text-stone-500 flex-wrap">
-                <span class="font-bold">Testar CEP:</span>
+              <div class="flex items-center gap-1.5 text-[10px] text-stone-500 flex-wrap w-full">
+                <span class="font-bold flex-shrink-0">Testar CEP:</span>
                 <button type="button" onclick="setQuickCep('04025010')" class="px-1.5 py-0.5 bg-white border border-stone-200/80 rounded hover:border-rose-300 hover:text-rose-600 transition-colors">Moema / SP (04025-010)</button>
                 <button type="button" onclick="setQuickCep('02210000')" class="px-1.5 py-0.5 bg-white border border-stone-200/80 rounded hover:border-rose-300 hover:text-rose-600 transition-colors">ZN / SP (02210-000)</button>
                 <button type="button" onclick="setQuickCep('20040002')" class="px-1.5 py-0.5 bg-white border border-stone-200/80 rounded hover:border-rose-300 hover:text-rose-600 transition-colors">Centro / RJ (20040-002)</button>
@@ -571,7 +582,7 @@
                   </span>
                   <span class="group-open:rotate-180 transition-transform text-stone-400 text-xs">▼</span>
                 </summary>
-                <p id="modalTranscript" class="text-[11px] sm:text-xs text-stone-600 mt-2.5 pt-2 border-t border-stone-100 leading-relaxed italic bg-stone-50 p-2.5 rounded-xl"></p>
+                <p id="modalTranscript" class="text-[11px] sm:text-xs text-stone-600 mt-2.5 pt-2 border-t border-stone-100 leading-relaxed italic bg-stone-50 p-2.5 rounded-xl break-words"></p>
               </details>
             </div>
 
@@ -599,8 +610,8 @@
   </div>
 
   <!-- Modal de Extração de Reels (PWA & Web) -->
-  <div id="extractModal" class="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-md hidden items-center justify-center p-3 sm:p-4">
-    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-stone-200 overflow-hidden transform transition-all">
+  <div id="extractModal" class="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-md hidden items-center justify-center p-3 sm:p-4 overflow-hidden max-w-full">
+    <div class="bg-white w-full max-w-[calc(100vw-24px)] sm:max-w-lg rounded-3xl shadow-2xl border border-stone-200 overflow-hidden transform transition-all">
       
       <!-- Header do Modal -->
       <div class="p-4 sm:p-5 bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 text-white flex items-center justify-between">

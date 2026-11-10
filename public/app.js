@@ -701,9 +701,9 @@ function openModal(id) {
       const done = doneSet.has(idx);
       return `
       <li>
-        <label class="flex items-start gap-2 p-1 rounded-lg hover:bg-stone-100/70 cursor-pointer select-none">
-          <input type="checkbox" ${done ? 'checked' : ''} onchange="onCheckChange(${jsArg(reel.id)}, ${idx}, this.checked)" class="mt-0.5 rounded text-rose-600 focus:ring-rose-500 cursor-pointer accent-rose-600">
-          <span id="checkLabel_${idx}" class="leading-tight ${done ? 'line-through text-stone-400' : ''}">${escapeHtml(item)}</span>
+        <label class="flex items-start gap-2 p-1 rounded-lg hover:bg-stone-100/70 cursor-pointer select-none min-w-0 w-full">
+          <input type="checkbox" ${done ? 'checked' : ''} onchange="onCheckChange(${jsArg(reel.id)}, ${idx}, this.checked)" class="mt-0.5 rounded text-rose-600 focus:ring-rose-500 cursor-pointer accent-rose-600 flex-shrink-0">
+          <span id="checkLabel_${idx}" class="leading-tight break-words flex-1 min-w-0 ${done ? 'line-through text-stone-400' : ''}">${escapeHtml(item)}</span>
         </label>
       </li>`;
     }).join('');
@@ -717,9 +717,9 @@ function openModal(id) {
   const stepsList = document.getElementById('modalSteps');
   if (reel.steps_or_tips && reel.steps_or_tips.length > 0) {
     stepsList.innerHTML = reel.steps_or_tips.map((step, idx) => `
-      <li class="flex items-start gap-2.5">
+      <li class="flex items-start gap-2.5 min-w-0 w-full">
         <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-rose-100 text-rose-700 text-[10px] sm:text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">${idx + 1}</span>
-        <span class="text-stone-700 leading-tight">${escapeHtml(step)}</span>
+        <span class="text-stone-700 leading-tight break-words flex-1 min-w-0">${escapeHtml(step)}</span>
       </li>
     `).join('');
     stepsList.parentElement.classList.remove('hidden');
@@ -773,7 +773,7 @@ function loadCloudinaryVideoPlayer(videoUrl, poster) {
   if (!container) return;
 
   container.innerHTML = `
-    <div class="relative w-full h-[500px] sm:h-[560px] bg-stone-900 rounded-2xl overflow-hidden flex items-center justify-center shadow-inner">
+    <div class="relative w-full max-w-full h-[460px] sm:h-[560px] bg-stone-900 rounded-2xl overflow-hidden flex items-center justify-center shadow-inner">
       <video 
         id="modalVideoPlayer"
         src="${escapeHtml(videoUrl)}" 
@@ -783,7 +783,7 @@ function loadCloudinaryVideoPlayer(videoUrl, poster) {
         playsinline 
         loop 
         preload="metadata"
-        class="w-full h-full object-contain rounded-2xl bg-stone-950"
+        class="w-full max-w-full h-full object-contain rounded-2xl bg-stone-950"
       ></video>
     </div>
   `;
@@ -802,7 +802,7 @@ function loadInstagramEmbed(reelId) {
   container.innerHTML = `
     <iframe 
       src="https://www.instagram.com/reel/${reelId}/embed/" 
-      class="w-full h-[500px] sm:h-[560px] border-0 rounded-2xl bg-white shadow-none block"
+      class="w-full max-w-full h-[460px] sm:h-[560px] border-0 rounded-2xl bg-white shadow-none block"
       scrolling="no"
       frameborder="0"
       allowtransparency="true"
@@ -1227,12 +1227,12 @@ function renderIngredientPricesResults(data, originalItems) {
   if (summary) {
     const economia = summary.maxTotal > summary.minTotal ? (summary.maxTotal - summary.minTotal) : 0;
     summaryHtml = `
-      <div class="bg-gradient-to-r from-amber-500 to-rose-500 rounded-2xl p-3.5 text-white shadow-sm space-y-2">
-        <div class="flex items-center justify-between text-xs">
+      <div class="bg-gradient-to-r from-amber-500 to-rose-500 rounded-2xl p-3 sm:p-3.5 text-white shadow-sm space-y-2 w-full max-w-full overflow-hidden">
+        <div class="flex items-center justify-between text-xs flex-wrap gap-1">
           <span class="font-black uppercase tracking-wider text-[10px] text-amber-100 flex items-center gap-1">
             <span>✨</span> Estimativa da Cesta Completa
           </span>
-          <span class="bg-white/20 backdrop-blur-xs px-2 py-0.5 rounded-full text-[10px] font-extrabold">
+          <span class="bg-white/20 backdrop-blur-xs px-2 py-0.5 rounded-full text-[10px] font-extrabold whitespace-nowrap">
             ${summary.itemsFound} de ${summary.itemsTotal} ingredientes
           </span>
         </div>
@@ -1249,7 +1249,7 @@ function renderIngredientPricesResults(data, originalItems) {
         </div>
 
         ${economia > 0 ? `
-          <div class="pt-1.5 border-t border-white/20 text-[11px] text-amber-100 flex items-center gap-1">
+          <div class="pt-1.5 border-t border-white/20 text-[11px] text-amber-100 flex items-center gap-1 flex-wrap">
             <span>💡</span>
             <span>Você pode economizar até <strong>${formatCurrency(economia)}</strong> escolhendo o mercado certo!</span>
           </div>
@@ -1262,7 +1262,7 @@ function renderIngredientPricesResults(data, originalItems) {
   let storesHtml = '';
   if (stores.length > 0) {
     storesHtml = `
-      <div class="space-y-2">
+      <div class="space-y-2 w-full max-w-full">
         <div class="flex items-center justify-between text-xs">
           <h5 class="font-extrabold text-stone-900 flex items-center gap-1.5">
             <span>🏪</span> Supermercados Próximos
@@ -1270,15 +1270,15 @@ function renderIngredientPricesResults(data, originalItems) {
           <span class="text-[10px] text-stone-400 font-semibold">${stores.length} lojas encontradas</span>
         </div>
 
-        <div class="space-y-2 max-h-[300px] overflow-y-auto custom-scroll pr-1">
+        <div class="space-y-2 max-h-[300px] overflow-y-auto overflow-x-hidden custom-scroll pr-1 w-full max-w-full">
           ${stores.map((s, idx) => `
-            <div class="bg-white rounded-xl p-3 border border-stone-200/80 hover:border-rose-300 transition-all shadow-2xs space-y-2">
-              <div class="flex items-start justify-between gap-2">
-                <div class="min-w-0">
+            <div class="bg-white rounded-xl p-3 border border-stone-200/80 hover:border-rose-300 transition-all shadow-2xs space-y-2 w-full max-w-full overflow-hidden">
+              <div class="flex items-start justify-between gap-2 min-w-0">
+                <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="w-4 h-4 rounded-full bg-stone-900 text-white text-[9px] font-black flex items-center justify-center flex-shrink-0">${idx + 1}</span>
-                    <h6 class="text-xs font-black text-stone-900 truncate">${escapeHtml(s.name)}</h6>
-                    <span class="px-1.5 py-0.2 rounded-md text-[9px] font-bold ${s.itemsFound === s.itemsTotal ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-600'}">
+                    <h6 class="text-xs font-black text-stone-900 truncate max-w-[150px] xs:max-w-[200px] sm:max-w-none" title="${escapeHtml(s.name)}">${escapeHtml(s.name)}</h6>
+                    <span class="px-1.5 py-0.2 rounded-md text-[9px] font-bold flex-shrink-0 ${s.itemsFound === s.itemsTotal ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-600'}">
                       ${s.itemsFound}/${s.itemsTotal} itens
                     </span>
                   </div>
@@ -1289,16 +1289,16 @@ function renderIngredientPricesResults(data, originalItems) {
 
                 <div class="text-right flex-shrink-0">
                   <span class="text-[10px] text-stone-400 block">Cesta na loja:</span>
-                  <span class="text-xs sm:text-sm font-black text-rose-600">${formatCurrency(s.basketPrice)}</span>
+                  <span class="text-xs sm:text-sm font-black text-rose-600 whitespace-nowrap">${formatCurrency(s.basketPrice)}</span>
                 </div>
               </div>
 
               <!-- Lista compacta dos itens na loja -->
-              <div class="bg-stone-50/80 rounded-lg p-2 text-[10px] text-stone-600 space-y-1">
+              <div class="bg-stone-50/80 rounded-lg p-2 text-[10px] text-stone-600 space-y-1 w-full max-w-full overflow-hidden">
                 ${s.items.map(it => `
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="truncate">• ${escapeHtml(it.productName || it.ingredient)}</span>
-                    <strong class="text-stone-800 flex-shrink-0">${formatCurrency(it.price)}</strong>
+                  <div class="flex items-center justify-between gap-2 min-w-0 w-full">
+                    <span class="truncate min-w-0 flex-1" title="${escapeHtml(it.productName || it.ingredient)}">• ${escapeHtml(it.productName || it.ingredient)}</span>
+                    <strong class="text-stone-800 flex-shrink-0 whitespace-nowrap ml-1">${formatCurrency(it.price)}</strong>
                   </div>
                 `).join('')}
               </div>
@@ -1327,33 +1327,33 @@ function renderIngredientPricesResults(data, originalItems) {
   const validDetails = details.filter(d => d.availableNearby);
   if (validDetails.length > 0) {
     detailsHtml = `
-      <div class="space-y-1.5 pt-1">
-        <details class="group bg-white rounded-xl border border-stone-200/80 p-2.5">
+      <div class="space-y-1.5 pt-1 w-full max-w-full">
+        <details class="group bg-white rounded-xl border border-stone-200/80 p-2.5 w-full max-w-full overflow-hidden">
           <summary class="cursor-pointer text-xs font-extrabold text-stone-800 hover:text-stone-900 flex items-center justify-between select-none">
-            <span class="flex items-center gap-1.5">
+            <span class="flex items-center gap-1.5 truncate pr-2">
               <span>🏷️</span>
-              <span>Comparativo de Marcas & Menor Preço (${validDetails.length} itens)</span>
+              <span class="truncate">Comparativo de Marcas & Menor Preço (${validDetails.length} itens)</span>
             </span>
-            <span class="group-open:rotate-180 transition-transform text-stone-400 text-xs">▼</span>
+            <span class="group-open:rotate-180 transition-transform text-stone-400 text-xs flex-shrink-0">▼</span>
           </summary>
 
-          <div class="pt-2.5 space-y-2">
+          <div class="pt-2.5 space-y-2 w-full max-w-full">
             ${validDetails.map(it => {
               const best = it.bestOffer || {};
               return `
-              <div class="flex items-center gap-2.5 p-2 rounded-lg bg-stone-50 border border-stone-100">
+              <div class="flex items-center gap-2.5 p-2 rounded-lg bg-stone-50 border border-stone-100 min-w-0 w-full overflow-hidden">
                 ${best.photo ? `
                   <img src="${escapeHtml(best.photo)}" alt="${escapeHtml(it.query)}" class="w-10 h-10 object-contain rounded-md bg-white border border-stone-200 flex-shrink-0" onerror="this.style.display='none'">
                 ` : `
                   <div class="w-10 h-10 rounded-md bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs flex-shrink-0">🥣</div>
                 `}
                 <div class="min-w-0 flex-1">
-                  <div class="flex items-center justify-between gap-1">
-                    <span class="text-xs font-extrabold text-stone-900 capitalize truncate">${escapeHtml(it.query)}</span>
-                    <span class="text-xs font-black text-emerald-700 flex-shrink-0">${formatCurrency(it.minPrice)}</span>
+                  <div class="flex items-center justify-between gap-1 min-w-0">
+                    <span class="text-xs font-extrabold text-stone-900 capitalize truncate min-w-0 flex-1">${escapeHtml(it.query)}</span>
+                    <span class="text-xs font-black text-emerald-700 flex-shrink-0 ml-1 whitespace-nowrap">${formatCurrency(it.minPrice)}</span>
                   </div>
-                  <p class="text-[10px] text-stone-500 truncate mt-0.5">${escapeHtml(best.productName || it.query)}</p>
-                  <p class="text-[9px] text-stone-400 mt-0.5">Mais barato em: <strong>${escapeHtml(best.storeName || 'Mercado local')}</strong> • Média: ${formatCurrency(it.avgPrice)}</p>
+                  <p class="text-[10px] text-stone-500 truncate mt-0.5" title="${escapeHtml(best.productName || it.query)}">${escapeHtml(best.productName || it.query)}</p>
+                  <p class="text-[9px] text-stone-400 mt-0.5 truncate">Mais barato em: <strong>${escapeHtml(best.storeName || 'Mercado local')}</strong> • Média: ${formatCurrency(it.avgPrice)}</p>
                 </div>
               </div>`;
             }).join('')}
