@@ -1157,7 +1157,7 @@ export async function searchIngredientPrices() {
   resultsContainer.innerHTML = `
     <div class="p-4 bg-white/90 rounded-2xl border border-rose-100 text-center space-y-2 shadow-2xs">
       <div class="inline-block w-6 h-6 border-2 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
-      <p class="text-xs font-bold text-stone-800">Cotando ingredientes na InfoPrice...</p>
+      <p class="text-xs font-bold text-stone-800">Cotando ingredientes nos mercados...</p>
       <p class="text-[10px] text-stone-500">Mapeando preços e estoques nos mercados num raio de ${raio}km do CEP ${formatCep(cleanCep)}</p>
     </div>
   `;
@@ -1466,7 +1466,7 @@ export async function startReelExtraction(overrideUrl = null) {
 
   const stepDownload = document.getElementById('stepDownload');
   const stepGemini = document.getElementById('stepGemini');
-  const stepInfoPrice = document.getElementById('stepInfoPrice');
+  const stepPricing = document.getElementById('stepPricing');
 
   if (form) form.classList.add('hidden');
   if (errorBox) errorBox.classList.add('hidden');
@@ -1478,19 +1478,19 @@ export async function startReelExtraction(overrideUrl = null) {
       if (subElem) subElem.textContent = 'Obtendo áudio em alta qualidade e metadados';
       if (stepDownload) stepDownload.className = 'flex items-center gap-2 text-rose-600 font-bold';
       if (stepGemini) stepGemini.className = 'flex items-center gap-2 text-stone-400';
-      if (stepInfoPrice) stepInfoPrice.className = 'flex items-center gap-2 text-stone-400';
+      if (stepPricing) stepPricing.className = 'flex items-center gap-2 text-stone-400';
     } else if (step === 2) {
       if (titleElem) titleElem.textContent = 'Analisando receita com Gemini IA...';
       if (subElem) subElem.textContent = 'Transcrevendo áudio e identificando ingredientes sem repetições';
       if (stepDownload) stepDownload.className = 'flex items-center gap-2 text-emerald-600 font-medium';
       if (stepGemini) stepGemini.className = 'flex items-center gap-2 text-rose-600 font-bold';
-      if (stepInfoPrice) stepInfoPrice.className = 'flex items-center gap-2 text-stone-400';
+      if (stepPricing) stepPricing.className = 'flex items-center gap-2 text-stone-400';
     } else if (step === 3) {
       if (titleElem) titleElem.textContent = 'Quase pronto! Organizando receita...';
       if (subElem) subElem.textContent = 'Integrando radar de preços nos supermercados próximos';
       if (stepDownload) stepDownload.className = 'flex items-center gap-2 text-emerald-600 font-medium';
       if (stepGemini) stepGemini.className = 'flex items-center gap-2 text-emerald-600 font-medium';
-      if (stepInfoPrice) stepInfoPrice.className = 'flex items-center gap-2 text-rose-600 font-bold';
+      if (stepPricing) stepPricing.className = 'flex items-center gap-2 text-rose-600 font-bold';
     }
   }
 
