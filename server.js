@@ -22,7 +22,7 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon'
 };
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   const urlPath = req.url.split('?')[0];
 
   // API endpoint de monitoramento em tempo real do Gemini
@@ -131,6 +131,49 @@ const server = http.createServer((req, res) => {
         res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ success: false, error: err.message }));
       });
+    return;
+  }
+
+  // Proxy seguro de imagens de produtos (mascara a origem das imagens)
+  if (urlPath === '/api/product-image') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204);
+      res.end();
+      return;
+    }
+
+    const urlObj = new URL(req.url, `http://${req.headers.host}`);
+    const gtin = (urlObj.searchParams.get('gtin') || '').replace(/\D/g, '');
+    if (!gtin) {
+      res.writeHead(400, { 'Content-Type': 'text/plain' });
+      res.end('GTIN missing');
+      return;
+    }
+
+    const paddedGtin = gtin.padStart(14, '0');
+    const targetUrl = `https://s3.amazonaws.com/infoprice-prd-imagens/gtin/${paddedGtin}.jpg`;
+
+    try {
+      const imgRes = await fetch(targetUrl, {
+        headers: { 'User-Agent': 'Mozilla/5.0' }
+      });
+      if (!imgRes.ok) {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('Image not found');
+        return;
+      }
+      res.writeHead(200, {
+        'Content-Type': imgRes.headers.get('content-type') || 'image/jpeg',
+        'Cache-Control': 'public, max-age=2592000, immutable'
+      });
+      const buffer = await imgRes.arrayBuffer();
+      res.end(Buffer.from(buffer));
+    } catch {
+      res.writeHead(502, { 'Content-Type': 'text/plain' });
+      res.end('Error fetching product image');
+    }
     return;
   }
 

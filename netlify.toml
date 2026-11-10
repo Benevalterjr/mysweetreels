@@ -10,6 +10,11 @@
   to = "/.netlify/functions/ingredients-pricing"
   status = 200
 
+[[redirects]]
+  from = "/api/product-image"
+  to = "/.netlify/functions/product-image"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]
